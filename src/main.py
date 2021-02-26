@@ -3,9 +3,19 @@ import time
 import json
 from coincheck.coincheck import CoinCheck
 
+# 秒数
 sec = 1
+# 前回のローソク足
 oldCandlestick = None
+# 今回のローソク足
 newCandlestick = None
+# 上昇フラグ
+riseFlg = False
+# 買い注文済みフラグ
+buyOderFlg = False
+# 売り注文済みフラグ
+sellOderFlg = False
+
 coinCheck = CoinCheck(os.environ['ACCESS_KEY'], os.environ['API_SECRET'])
 
 
@@ -45,16 +55,61 @@ while True:
         # ローソク足更新
         newCandlestick = Candlestick(last)
         sec = sec + 1
-    elif sec == 60:
+
+    elif sec == 5:
         newCandlestick.set(last)
         # TODO あとで消す
         flg = oldCandlestick is not None
 
         # 約定判定
         if oldCandlestick is not None:
-            print('判定します')
-            print(vars(oldCandlestick))
-            print(vars(newCandlestick))
+
+            # 売り注文がなければ
+            if not sellOderFlg:
+                varsOldCandlestick = vars(oldCandlestick)
+                varsNewCandlestick = vars(newCandlestick)
+
+                print('判定します')
+                print('oldCandlestick: ' + str(varsOldCandlestick))
+                print('newCandlestick: ' + str(varsNewCandlestick))
+
+                difference = varsNewCandlestick['end'] - varsOldCandlestick['end']
+
+                # 下降→上昇
+                if (not riseFlg) and difference > 0:
+                    riseFlg = True
+
+                    # 注文されていなかったら（保険）
+                    if (not buyOderFlg) and (not sellOderFlg):
+                        print("FALL to RISE: ORDER!")
+                        print("newCandlestick['max']+1で逆指値の買い注文入れる")
+                        buyOderFlg = True
+
+                # 下降→下降
+                if (not riseFlg) and difference <= 0:
+                    # None
+                    print("FALL to FALL: WATCHING...")
+
+                # 上昇→上昇
+                elif riseFlg and difference > 0:
+                    print("RISE to RISE: WATCHING...")
+
+                # 上昇→下降
+                elif riseFlg and difference <= 0:
+                    riseFlg = False
+                    buyOderFlg = False
+
+                    # TODO 約定済みかチェック
+                    contractFlg = True
+
+                    if contractFlg:
+                        # TODO 逆指値注文を検討
+                        print("RISE to FALL: ORDER!")
+                        print("成り行きで売り注文入れる")
+                        sellOderFlg = True
+                    else:
+                        print("RISE to FALL: CANCEL!")
+                        print("注文キャンセル")
 
         oldCandlestick = newCandlestick
         sec = 1
