@@ -18,6 +18,8 @@ sellOderFlg = False
 
 coinCheck = CoinCheck(os.environ['ACCESS_KEY'], os.environ['API_SECRET'])
 
+amount = 20000000.0
+
 
 class Candlestick:
     start = 0
@@ -43,23 +45,22 @@ class Candlestick:
 
 while True:
     time.sleep(1)
-    print(sec, "秒経過")
+    print(str(sec) + 'sec... amount: ' + str(amount))
 
     res = coinCheck.ticker.all()
     last = json.loads(res)['last']
 
-    if newCandlestick is not None:
-        print(vars(newCandlestick))
+    if sellOderFlg:
+        # TODO 約定済みかチェック
+        sellOderFlg = False
 
     if sec == 1:
         # ローソク足更新
         newCandlestick = Candlestick(last)
         sec = sec + 1
 
-    elif sec == 5:
+    elif sec == int(os.environ['INTERVAL']):
         newCandlestick.set(last)
-        # TODO あとで消す
-        flg = oldCandlestick is not None
 
         # 約定判定
         if oldCandlestick is not None:
@@ -82,7 +83,8 @@ while True:
                     # 注文されていなかったら（保険）
                     if (not buyOderFlg) and (not sellOderFlg):
                         print("FALL to RISE: ORDER!")
-                        print("newCandlestick['max']+1で逆指値の買い注文入れる")
+                        # TODO newCandlestick['max']+1で逆指値の買い注文入れる
+                        amount = amount - varsNewCandlestick['end']
                         buyOderFlg = True
 
                 # 下降→下降
@@ -105,16 +107,15 @@ while True:
                     if contractFlg:
                         # TODO 逆指値注文を検討
                         print("RISE to FALL: ORDER!")
-                        print("成り行きで売り注文入れる")
+                        # TODO 成り行きで売り注文入れる
                         sellOderFlg = True
+                        amount = amount + varsNewCandlestick['end']
                     else:
                         print("RISE to FALL: CANCEL!")
-                        print("注文キャンセル")
+                        # TODO キャンセル入れる
 
         oldCandlestick = newCandlestick
         sec = 1
-        if flg:
-            break
 
     else:
         # 監視状態
