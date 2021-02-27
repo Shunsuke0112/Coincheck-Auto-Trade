@@ -70,7 +70,7 @@ while True:
                 varsOldCandlestick = vars(oldCandlestick)
                 varsNewCandlestick = vars(newCandlestick)
 
-                print('判定します')
+                print('Judge！')
                 print('oldCandlestick: ' + str(varsOldCandlestick))
                 print('newCandlestick: ' + str(varsNewCandlestick))
 
@@ -84,11 +84,12 @@ while True:
                     if (not buyOderFlg) and (not sellOderFlg):
                         print("FALL to RISE: ORDER!")
                         # TODO newCandlestick['max']+1で逆指値の買い注文入れる
+                        # TODO 購入口数をセット
                         amount = amount - varsNewCandlestick['end']
                         buyOderFlg = True
 
                 # 下降→下降
-                if (not riseFlg) and difference <= 0:
+                elif (not riseFlg) and difference <= 0:
                     # None
                     print("FALL to FALL: WATCHING...")
 
