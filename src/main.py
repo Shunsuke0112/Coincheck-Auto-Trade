@@ -1,124 +1,60 @@
 import os
 import time
 import json
-from coincheck.coincheck import CoinCheck
+import pandas as pd
 
-# 秒数
-sec = 1
-# 前回のローソク足
-oldCandlestick = None
-# 今回のローソク足
-newCandlestick = None
-# 上昇フラグ
-riseFlg = False
-# 買い注文済みフラグ
-buyOderFlg = False
-# 売り注文済みフラグ
-sellOderFlg = False
+from coincheck.coincheck import CoinCheck
+from retry import retry
 
 coinCheck = CoinCheck(os.environ['ACCESS_KEY'], os.environ['API_SECRET'])
 
+# シミュレーション用金額
 amount = 20000000.0
+# 何秒ごとに価格データを確認するか
+interval_sec = 60
+# 買い注文済みフラグ
+buy_order_flg = False
+# 売り注文済みフラグ
+sell_order_flg = False
 
 
-class Candlestick:
-    start = 0
-    end = 0
-    max = 0
-    min = 0
+@retry(exceptions=Exception, delay=1)
+def get_last():
+    """
+    ティッカーのlastを取得する（エラーの場合は1秒後に再実行）
 
-    def __init__(self, rate):
-        # 初期化
-        self.start = rate
-        self.end = rate
-        self.max = rate
-        self.min = rate
-
-    def set(self, rate):
-        if sec == 60:
-            self.end = rate
-        if self.max <= rate:
-            self.max = rate
-        if self.min >= rate:
-            self.min = rate
-
-
-while True:
-    time.sleep(1)
-    print(str(sec) + 'sec... amount: ' + str(amount))
-
+    :rtype: last
+    """
     res = coinCheck.ticker.all()
-    last = json.loads(res)['last']
+    return json.loads(res)['last']
 
-    if sellOderFlg:
-        # TODO 約定済みかチェック
-        sellOderFlg = False
 
-    if sec == 1:
-        # ローソク足更新
-        newCandlestick = Candlestick(last)
-        sec = sec + 1
+# 空のデータフレーム作り、データを入れる
+df = pd.DataFrame()
+df = df.append({'price': get_last(), }, ignore_index=True)
 
-    elif sec == int(os.environ['INTERVAL']):
-        newCandlestick.set(last)
+# 以下無限ループ
+while True:
+    # 最新の価格を取ってくる
+    price_now = get_last()
+    # 1つ前の価格と比較
+    difference = price_now - df.iloc[-1]["price"]
+    df = df.append({'price': price_now, 'difference': difference, }, ignore_index=True)
 
-        # 約定判定
-        if oldCandlestick is not None:
+    if not buy_order_flg and df.iloc[-2]["difference"] < 0 and df.iloc[-1]["difference"] > 0:
+        # 未購入状態で降下から上昇に変化したとき
+        print("買い注文実施")
+        buy_order_flg = True
+        amount = amount - price_now
+    elif buy_order_flg and df.iloc[-2]["difference"] > 0 and df.iloc[-1]["difference"] < 0:
+        # 購入状態で上昇から降下に変化したとき
+        print("売り注文実施")
+        buy_order_flg = False
+        amount = amount + price_now
 
-            # 売り注文がなければ
-            if not sellOderFlg:
-                varsOldCandlestick = vars(oldCandlestick)
-                varsNewCandlestick = vars(newCandlestick)
+    # 現在の金額を表示
+    print(amount)
 
-                print('Judge！')
-                print('oldCandlestick: ' + str(varsOldCandlestick))
-                print('newCandlestick: ' + str(varsNewCandlestick))
-
-                difference = varsNewCandlestick['end'] - varsOldCandlestick['end']
-
-                # 下降→上昇
-                if (not riseFlg) and difference > 0:
-                    riseFlg = True
-
-                    # 注文されていなかったら（保険）
-                    if (not buyOderFlg) and (not sellOderFlg):
-                        print("FALL to RISE: ORDER!")
-                        # TODO newCandlestick['max']+1で逆指値の買い注文入れる
-                        # TODO 購入口数をセット
-                        amount = amount - varsNewCandlestick['end']
-                        buyOderFlg = True
-
-                # 下降→下降
-                elif (not riseFlg) and difference <= 0:
-                    # None
-                    print("FALL to FALL: WATCHING...")
-
-                # 上昇→上昇
-                elif riseFlg and difference > 0:
-                    print("RISE to RISE: WATCHING...")
-
-                # 上昇→下降
-                elif riseFlg and difference <= 0:
-                    riseFlg = False
-                    buyOderFlg = False
-
-                    # TODO 約定済みかチェック
-                    contractFlg = True
-
-                    if contractFlg:
-                        # TODO 逆指値注文を検討
-                        print("RISE to FALL: ORDER!")
-                        # TODO 成り行きで売り注文入れる
-                        sellOderFlg = True
-                        amount = amount + varsNewCandlestick['end']
-                    else:
-                        print("RISE to FALL: CANCEL!")
-                        # TODO キャンセル入れる
-
-        oldCandlestick = newCandlestick
-        sec = 1
-
-    else:
-        # 監視状態
-        newCandlestick.set(last)
-        sec = sec + 1
+    # 先頭行を削除してdfの長さを一定に保つ（長時間の運用時のメモリ対策）
+    df = df.drop(df.index[0])
+    time.sleep(interval_sec)
