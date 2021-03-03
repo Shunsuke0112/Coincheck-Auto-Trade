@@ -14,8 +14,6 @@ amount = 20000000.0
 interval_sec = 60
 # 買い注文済みフラグ
 buy_order_flg = False
-# 売り注文済みフラグ
-sell_order_flg = False
 # ボリンジャーバンドの期間（基本は20）
 duration = 20
 # σの値
@@ -35,7 +33,7 @@ def get_last():
 
 def price_data_collecting(how_many_samples=25):
     """
-    初めの何回か(デフォルトでは25回)は取引をせずに価格データをただ集める
+    初めの何回か(デフォルトでは25回)は取引をせずに価格データを集める
 
     :rtype: price_list
     """
