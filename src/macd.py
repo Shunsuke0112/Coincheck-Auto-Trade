@@ -82,7 +82,7 @@ while True:
     # MACDがシグナルを下から上に抜けるとき
     buy_flg = macd.iloc[-2]["histogram"] < 0 and macd.iloc[-1]["histogram"] > 0
     # ヒストグラムが減少したとき
-    sell_flg = macd.iloc[-2]["histogram"] > macd.iloc[-1]["histogram"]
+    sell_flg = macd.iloc[-2]["histogram"] > macd.iloc[-1]["histogram"] > 0
 
     if not buy_order_flg and buy_flg:
         print("買い注文実施")
