@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import datetime
 import pandas as pd
 
 from coincheck.coincheck import CoinCheck
@@ -43,17 +44,18 @@ while True:
 
     if not buy_order_flg and df.iloc[-2]["difference"] < 0 and df.iloc[-1]["difference"] > 0:
         # 未購入状態で降下から上昇に変化したとき
-        print("買い注文実施")
+        print("Execute a buy order!")
         buy_order_flg = True
         amount = amount - price_now
     elif buy_order_flg and df.iloc[-2]["difference"] > 0 and df.iloc[-1]["difference"] < 0:
         # 購入状態で上昇から降下に変化したとき
-        print("売り注文実施")
+        print("Execute a sell order!")
         buy_order_flg = False
         amount = amount + price_now
 
-    # 現在の金額を表示
-    print(amount)
+    # 現在の時刻・金額を表示
+    dt_now = datetime.datetime.now()
+    print(dt_now.strftime('%Y/%m/%d %H:%M:%S') + ' ' + str(amount))
 
     # 先頭行を削除してdfの長さを一定に保つ（長時間の運用時のメモリ対策）
     df = df.drop(df.index[0])

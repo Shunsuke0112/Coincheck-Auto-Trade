@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import datetime
 import pandas as pd
 
 from coincheck.coincheck import CoinCheck
@@ -52,12 +53,12 @@ def data_collecting(how_many_samples=25):
 
     :rtype: price_list
     """
-    print("まずは今から" + str(how_many_samples) + "分間、価格データを収集します。")
+    print("Collecting data... (" + str(how_many_samples) + "minutes)")
     sample_data = pd.DataFrame()
     for i in range(how_many_samples):
         candle_stick = get_candle_stick()
         sample_data = sample_data.append({'open': candle_stick['open'], 'high': candle_stick['high'], 'low': candle_stick['low'], 'close': candle_stick['close'], }, ignore_index=True)
-    print("収集が完了しました。")
+    print("Collection is complete!")
     return sample_data
 
 
@@ -85,12 +86,14 @@ while True:
     sell_flg = macd.iloc[-2]["histogram"] > macd.iloc[-1]["histogram"] > 0
 
     if not buy_order_flg and buy_flg:
-        print("買い注文実施")
+        print("Execute a buy order!")
         buy_order_flg = True
         amount = amount - df.iloc[-1]['close']
     elif buy_order_flg and sell_flg:
-        print("売り注文実施")
+        print("Execute a sell order!")
         buy_order_flg = False
         amount = amount + df.iloc[-1]['close']
 
-    print(amount)
+    # 現在の時刻・金額を表示
+    dt_now = datetime.datetime.now()
+    print(dt_now.strftime('%Y/%m/%d %H:%M:%S') + ' ' + str(amount))

@@ -1,6 +1,7 @@
 import os
 import time
 import json
+import datetime
 import pandas as pd
 
 from coincheck.coincheck import CoinCheck
@@ -37,12 +38,12 @@ def price_data_collecting(how_many_samples=25):
 
     :rtype: price_list
     """
-    print("まずは今から" + str(how_many_samples * interval_sec) + "秒間、価格データを収集します。")
+    print("Collecting data... (" + str(how_many_samples * interval_sec) + "sec)")
     price_list = []
     for i in range(how_many_samples):
         price_list.append(get_last())
         time.sleep(interval_sec)
-    print("収集が完了しました。")
+    print("Collection is complete!")
     return price_list
 
 
@@ -74,17 +75,18 @@ while True:
 
     if not buy_order_flg and buy_flg:
         # 未購入状態で-xσを下回っていたら買い注文実施
-        print("買い注文実施")
+        print("Execute a buy order!")
         buy_order_flg = True
         amount = amount - price_now
     elif buy_order_flg and sell_flg:
         # 購入状態で+xσを上回っていたら売り注文実施
-        print("売り注文実施")
+        print("Execute a sell order!")
         buy_order_flg = False
         amount = amount + price_now
 
-    # 現在の金額を表示
-    print(amount)
+    # 現在の時刻・金額を表示
+    dt_now = datetime.datetime.now()
+    print(dt_now.strftime('%Y/%m/%d %H:%M:%S') + ' ' + str(amount))
 
     # 先頭行を削除してdfの長さを一定に保つ（長時間の運用時のメモリ対策）
     df = df.drop(df.index[0])
