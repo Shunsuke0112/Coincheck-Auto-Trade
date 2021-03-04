@@ -46,7 +46,7 @@ def get_candle_stick():
     return candle_stick
 
 
-def data_collecting(how_many_samples=30):
+def data_collecting(how_many_samples=25):
     """
     初めの30回は取引をせずに価格データを集める
 
