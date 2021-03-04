@@ -1,2 +1,3 @@
 .idea
 src/coincheck/__pycache__/*
+.env
