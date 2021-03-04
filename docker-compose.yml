@@ -1,0 +1,13 @@
+version: '3'
+services:
+  coincheck-auto-trade:
+    restart: always
+    build: .
+    image: 'coincheck-auto-trade-imamge'
+    container_name: 'coincheck-auto-trade-container'
+    working_dir: '/root/src'
+    tty: true
+    env_file:
+      - .env
+    volumes:
+      - ./src:/root/src
