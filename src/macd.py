@@ -48,7 +48,7 @@ def get_candle_stick():
 
 def data_collecting(how_many_samples=25):
     """
-    初めの30回は取引をせずに価格データを集める
+    初めの25回は取引をせずに価格データを集める
 
     :rtype: price_list
     """
