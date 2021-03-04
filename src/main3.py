@@ -77,11 +77,12 @@ while True:
 
     macd['macd'] = macd['ema_12'] - macd['ema_26']
     macd['signal'] = macd['macd'].ewm(span=9).mean()
+    macd['histogram'] = macd['macd'] - macd['signal']
 
     # MACDがシグナルを下から上に抜けるとき
-    buy_flg = macd.iloc[-2]["macd"] - macd.iloc[-2]["signal"] < 0 and macd.iloc[-1]["macd"] - macd.iloc[-1]["signal"] > 0
-    # MACDがシグナルを上から下に抜けるとき
-    sell_flg = macd.iloc[-2]["macd"] - macd.iloc[-2]["signal"] > 0 and macd.iloc[-1]["macd"] - macd.iloc[-1]["signal"] < 0
+    buy_flg = macd.iloc[-2]["histogram"] < 0 and macd.iloc[-1]["histogram"] > 0
+    # ヒストグラムが減少したとき
+    sell_flg = macd.iloc[-2]["histogram"] > macd.iloc[-1]["histogram"]
 
     if not buy_order_flg and buy_flg:
         print("買い注文実施")
