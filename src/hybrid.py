@@ -23,6 +23,9 @@ sigma = 2
 coin = os.environ['COIN']
 pair = coin + '_jpy'
 
+# 利益
+profit = 0
+
 
 @retry(exceptions=Exception, delay=1)
 def get_last():
@@ -54,7 +57,7 @@ def buy(market_buy_amount):
     """
     指定した金額で買い注文を入れる（成行）
 
-    :rtype: order_id or None
+    :rtype: order_json
     """
     params = {
         "pair": pair,
@@ -65,7 +68,7 @@ def buy(market_buy_amount):
     order_json = json.loads(order)
 
     if order_json['success']:
-        return order_json['id']
+        return order_json
     else:
         print(order)
         return None
@@ -75,7 +78,7 @@ def sell(order_id):
     """
     購入した量で売り注文を入れる（成行）
 
-    :rtype: order_id or None
+    :rtype: order_json
     """
     transactions = coinCheck.order.transactions()
     for transaction in json.loads(transactions)['transactions']:
@@ -90,10 +93,10 @@ def sell(order_id):
             order_json = json.loads(order)
 
             if order_json['success']:
-                return None
+                return order_json
             else:
                 print(order)
-                return order_id
+                return None
 
 
 # 初めのサンプル価格データの収集
@@ -135,20 +138,32 @@ while True:
         # 未購入状態で-xσを下回っていたら買い注文実施
         print("Execute a buy order!")
         try:
-            order_id = buy(1000)
+            order_json = buy(1000)
+            if order_json is not None:
+                order_id = order_json['id']
+                profit -= order_json['rate'] * order_json['amount']
         except Exception as e:
             print(e)
     elif order_id is not None and sell_flg:
         # 購入状態で+xσを上回っていたら売り注文実施
         print("Execute a sell order!")
         try:
-            order_id = sell(order_id)
+            order_json = sell(order_id)
+            if order_json is not None:
+                order_id = None
+                profit += order_json['rate'] * order_json['amount']
         except Exception as e:
             print(e)
 
     # 現在の時刻・金額を表示
     dt_now = datetime.datetime.now()
-    res = coinCheck.account.balance()
+    account_balance = coinCheck.account.balance()
+    account_balance_json = json.loads(account_balance)
+    res = {
+        'profit': profit,  # 利益
+        'jpy': account_balance_json['jpy'],  # 円
+        coin: account_balance_json[coin],  # COIN
+    }
     print(dt_now.strftime('%Y/%m/%d %H:%M:%S') + ' ' + str(res))
 
     # 先頭行を削除してdfの長さを一定に保つ（長時間の運用時のメモリ対策）
