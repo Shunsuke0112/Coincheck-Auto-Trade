@@ -20,6 +20,9 @@ duration = 20
 # σの値
 sigma = 2
 
+coin = 'mona'
+pair = coin + '_jpy'
+
 
 @retry(exceptions=Exception, delay=1)
 def get_last():
@@ -54,7 +57,7 @@ def buy(market_buy_amount):
     :rtype: order_id or None
     """
     params = {
-        "pair": "btc_jpy",
+        "pair": pair,
         "order_type": "market_buy",
         "market_buy_amount": market_buy_amount,  # 量ではなく金額
     }
@@ -77,11 +80,11 @@ def sell(order_id):
     transactions = coinCheck.order.transactions()
     for transaction in json.loads(transactions)['transactions']:
         if order_id == transaction['order_id']:
-            btc_amount = transaction['funds']['btc']
+            coin_amount = transaction['funds'][coin]
             params = {
-                "pair": "btc_jpy",
+                "pair": pair,
                 "order_type": "market_sell",
-                "amount": btc_amount,
+                "amount": coin_amount,
             }
             order = coinCheck.order.create(params)
             order_json = json.loads(order)
