@@ -51,7 +51,7 @@ def buy(market_buy_amount):
     """
     指定した金額で買い注文を入れる（成行）
 
-    :rtype: order_id
+    :rtype: order_id or None
     """
     params = {
         "pair": "btc_jpy",
@@ -72,7 +72,7 @@ def sell(order_id):
     """
     購入した量で売り注文を入れる（成行）
 
-    :rtype: None
+    :rtype: order_id or None
     """
     transactions = coinCheck.order.transactions()
     for transaction in json.loads(transactions)['transactions']:
