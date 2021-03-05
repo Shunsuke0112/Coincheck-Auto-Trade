@@ -20,7 +20,7 @@ duration = 20
 # σの値
 sigma = 2
 
-coin = 'mona'
+coin = os.environ['COIN']
 pair = coin + '_jpy'
 
 
