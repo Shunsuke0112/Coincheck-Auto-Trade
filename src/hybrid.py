@@ -99,6 +99,21 @@ def sell(order_id):
                 return None
 
 
+def get_rate(order_type, amount):
+    """
+    レートを取得する
+
+    :rtype: order_rate_json
+    """
+    params = {
+        'order_type': order_type,
+        'pair': pair,
+        'amount': amount
+    }
+    order_rate = coinCheck.order.rate(params)
+    return json.loads(order_rate)
+
+
 # 初めのサンプル価格データの収集
 sample_data = price_data_collecting()
 
@@ -141,7 +156,7 @@ while True:
             order_json = buy(1000)
             if order_json is not None:
                 order_id = order_json['id']
-                profit -= order_json['rate'] * order_json['amount']
+                profit -= float(order_json['market_buy_amount'])
         except Exception as e:
             print(e)
     elif order_id is not None and sell_flg:
@@ -151,7 +166,8 @@ while True:
             order_json = sell(order_id)
             if order_json is not None:
                 order_id = None
-                profit += order_json['rate'] * order_json['amount']
+                order_rate_json = get_rate('sell', order_json['amount'])
+                profit += float(order_rate_json['price'])
         except Exception as e:
             print(e)
 
