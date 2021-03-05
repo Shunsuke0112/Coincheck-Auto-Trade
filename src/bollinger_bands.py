@@ -13,12 +13,18 @@ coinCheck = CoinCheck(os.environ['ACCESS_KEY'], os.environ['API_SECRET'])
 amount = 20000000.0
 # 何秒ごとに価格データを確認するか
 interval_sec = 60
-# 買い注文済みフラグ
-buy_order_flg = False
+# 注文ID
+order_id = None
 # ボリンジャーバンドの期間（基本は20）
 duration = 20
 # σの値
 sigma = 2
+
+COIN = os.environ['COIN']
+pair = COIN + '_jpy'
+
+# 利益
+profit = 0
 
 
 @retry(exceptions=Exception, delay=1)
@@ -47,6 +53,67 @@ def price_data_collecting(how_many_samples=25):
     return price_list
 
 
+def buy(market_buy_amount):
+    """
+    指定した金額で買い注文を入れる（成行）
+
+    :rtype: order_json
+    """
+    params = {
+        "pair": pair,
+        "order_type": "market_buy",
+        "market_buy_amount": market_buy_amount,  # 量ではなく金額
+    }
+    order = coinCheck.order.create(params)
+    order_json = json.loads(order)
+
+    if order_json['success']:
+        return order_json
+    else:
+        print(order)
+        return None
+
+
+def sell(order_id):
+    """
+    購入した量で売り注文を入れる（成行）
+
+    :rtype: order_json
+    """
+    transactions = coinCheck.order.transactions()
+    for transaction in json.loads(transactions)['transactions']:
+        if order_id == transaction['order_id']:
+            coin_amount = transaction['funds'][COIN]
+            params = {
+                "pair": pair,
+                "order_type": "market_sell",
+                "amount": coin_amount,
+            }
+            order = coinCheck.order.create(params)
+            order_json = json.loads(order)
+
+            if order_json['success']:
+                return order_json
+            else:
+                print(order)
+                return None
+
+
+def get_rate(order_type, amount):
+    """
+    レートを取得する
+
+    :rtype: order_rate_json
+    """
+    params = {
+        'order_type': order_type,
+        'pair': pair,
+        'amount': amount
+    }
+    order_rate = coinCheck.order.rate(params)
+    return json.loads(order_rate)
+
+
 # 初めのサンプル価格データの収集
 sample_data = price_data_collecting()
 
@@ -73,20 +140,38 @@ while True:
     buy_flg = df.iloc[-1]["price"] < df.iloc[-1]["-" + str(sigma) + "σ"]
     sell_flg = df.iloc[-1]["price"] > df.iloc[-1]["+" + str(sigma) + "σ"]
 
-    if not buy_order_flg and buy_flg:
+    if order_id is None and buy_flg:
         # 未購入状態で-xσを下回っていたら買い注文実施
         print("Execute a buy order!")
-        buy_order_flg = True
-        amount = amount - price_now
-    elif buy_order_flg and sell_flg:
+        try:
+            order_json = buy(1000)
+            if order_json is not None:
+                order_id = order_json['id']
+                profit -= float(order_json['market_buy_amount'])
+        except Exception as e:
+            print(e)
+    elif order_id is not None and sell_flg:
         # 購入状態で+xσを上回っていたら売り注文実施
         print("Execute a sell order!")
-        buy_order_flg = False
-        amount = amount + price_now
+        try:
+            order_json = sell(order_id)
+            if order_json is not None:
+                order_id = None
+                order_rate_json = get_rate('sell', order_json['amount'])
+                profit += float(order_rate_json['price'])
+        except Exception as e:
+            print(e)
 
     # 現在の時刻・金額を表示
     dt_now = datetime.datetime.now()
-    print(dt_now.strftime('%Y/%m/%d %H:%M:%S') + ' ' + str(amount))
+    account_balance = coinCheck.account.balance()
+    account_balance_json = json.loads(account_balance)
+    res = {
+        'profit': profit,  # 利益
+        'jpy': account_balance_json['jpy'],  # 円
+        COIN: account_balance_json[COIN],  # COIN
+    }
+    print(dt_now.strftime('%Y/%m/%d %H:%M:%S') + ' ' + str(res))
 
     # 先頭行を削除してdfの長さを一定に保つ（長時間の運用時のメモリ対策）
     df = df.drop(df.index[0])

@@ -20,3 +20,6 @@ class Order(ServiceBase):
 
     def transactions(self, params={}):
         return self.coinCheck.request(ServiceBase.METHOD_GET, self.baseUrl + '/transactions', params)
+
+    def rate(self, params={}):
+        return self.coinCheck.request(ServiceBase.METHOD_GET, self.baseUrl + '/rate', params)
