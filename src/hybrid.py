@@ -20,8 +20,8 @@ duration = 20
 # σの値
 sigma = 2
 
-coin = os.environ['COIN']
-pair = coin + '_jpy'
+COIN = os.environ['COIN']
+pair = COIN + '_jpy'
 
 # 利益
 profit = 0
@@ -83,7 +83,7 @@ def sell(order_id):
     transactions = coinCheck.order.transactions()
     for transaction in json.loads(transactions)['transactions']:
         if order_id == transaction['order_id']:
-            coin_amount = transaction['funds'][coin]
+            coin_amount = transaction['funds'][COIN]
             params = {
                 "pair": pair,
                 "order_type": "market_sell",
@@ -162,7 +162,7 @@ while True:
     res = {
         'profit': profit,  # 利益
         'jpy': account_balance_json['jpy'],  # 円
-        coin: account_balance_json[coin],  # COIN
+        COIN: account_balance_json[COIN],  # COIN
     }
     print(dt_now.strftime('%Y/%m/%d %H:%M:%S') + ' ' + str(res))
 
