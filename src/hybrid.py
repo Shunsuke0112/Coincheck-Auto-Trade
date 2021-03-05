@@ -80,7 +80,7 @@ while True:
     macd['signal'] = macd['macd'].ewm(span=9).mean()
     macd['histogram'] = macd['macd'] - macd['signal']
 
-    sell_flg = macd.iloc[-2]["histogram"] > macd.iloc[-1]["histogram"] > 0
+    sell_flg = macd.iloc[-2]["histogram"] > macd.iloc[-1]["histogram"]
 
     if not buy_order_flg and buy_flg:
         # 未購入状態で-xσを下回っていたら買い注文実施
