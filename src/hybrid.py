@@ -13,8 +13,8 @@ coinCheck = CoinCheck(os.environ['ACCESS_KEY'], os.environ['API_SECRET'])
 amount = 20000000.0
 # 何秒ごとに価格データを確認するか
 interval_sec = 60
-# 買い注文済みフラグ
-buy_order_flg = False
+# 注文ID
+order_id = None
 # ボリンジャーバンドの期間（基本は20）
 duration = 20
 # σの値
@@ -28,8 +28,8 @@ def get_last():
 
     :rtype: last
     """
-    res = coinCheck.ticker.all()
-    return json.loads(res)['last']
+    ticker = coinCheck.ticker.all()
+    return json.loads(ticker)['last']
 
 
 def price_data_collecting(how_many_samples=25):
@@ -45,6 +45,52 @@ def price_data_collecting(how_many_samples=25):
         time.sleep(interval_sec)
     print("Collection is complete!")
     return price_list
+
+
+def buy(market_buy_amount):
+    """
+    指定した金額で買い注文を入れる（成行）
+
+    :rtype: order_id
+    """
+    params = {
+        "pair": "btc_jpy",
+        "order_type": "market_buy",
+        "market_buy_amount": market_buy_amount,  # 量ではなく金額
+    }
+    order = coinCheck.order.create(params)
+    order_json = json.loads(order)
+
+    if order_json['success']:
+        return order_json['id']
+    else:
+        print(order)
+        return None
+
+
+def sell(order_id):
+    """
+    購入した量で売り注文を入れる（成行）
+
+    :rtype: None
+    """
+    transactions = coinCheck.order.transactions()
+    for transaction in json.loads(transactions)['transactions']:
+        if order_id == transaction['order_id']:
+            btc_amount = transaction['funds']['btc']
+            params = {
+                "pair": "btc_jpy",
+                "order_type": "market_sell",
+                "amount": btc_amount,
+            }
+            order = coinCheck.order.create(params)
+            order_json = json.loads(order)
+
+            if order_json['success']:
+                return None
+            else:
+                print(order)
+                return order_id
 
 
 # 初めのサンプル価格データの収集
@@ -82,20 +128,25 @@ while True:
 
     sell_flg = macd.iloc[-2]["histogram"] > macd.iloc[-1]["histogram"] > 0
 
-    if not buy_order_flg and buy_flg:
+    if order_id is None and buy_flg:
         # 未購入状態で-xσを下回っていたら買い注文実施
         print("Execute a buy order!")
-        buy_order_flg = True
-        amount = amount - price_now
-    elif buy_order_flg and sell_flg:
+        try:
+            order_id = buy(1000)
+        except Exception as e:
+            print(e)
+    elif order_id is not None and sell_flg:
         # 購入状態で+xσを上回っていたら売り注文実施
         print("Execute a sell order!")
-        buy_order_flg = False
-        amount = amount + price_now
+        try:
+            order_id = sell(order_id)
+        except Exception as e:
+            print(e)
 
     # 現在の時刻・金額を表示
     dt_now = datetime.datetime.now()
-    print(dt_now.strftime('%Y/%m/%d %H:%M:%S') + ' ' + str(amount))
+    res = coinCheck.account.balance()
+    print(dt_now.strftime('%Y/%m/%d %H:%M:%S') + ' ' + str(res))
 
     # 先頭行を削除してdfの長さを一定に保つ（長時間の運用時のメモリ対策）
     df = df.drop(df.index[0])
