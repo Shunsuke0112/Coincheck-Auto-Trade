@@ -72,7 +72,7 @@ if not is_valid_key:
 
 # 購入金額の判定
 if AMOUNT < min_amount:
-    print('Please specify more than ' + min_amount + ' Yen')
+    print('Please specify more than ' + str(min_amount) + ' Yen')
     sys.exit()
 
 print('ALGORITHM: ' + ALGORITHM)
@@ -101,20 +101,22 @@ def get_candle_stick():
     :rtype: candle
     """
     candle = {}
-    for j in range(60):
+    interval = 60
+    for j in range(interval):
         price = get_last()
 
         if j == 0:
             candle['open'] = price
             candle['high'] = price
             candle['low'] = price
-        elif j == 59:
+        elif j == interval:
             candle['close'] = price
 
         if j != 0:
             candle['high'] = price if price > candle['high'] else candle['high']
             candle['low'] = price if price < candle['low'] else candle['low']
 
+        print('candle: ' + str(candle))
         time.sleep(1)
     return candle
 
@@ -128,8 +130,8 @@ def data_collecting(how_many_samples=25):
     print('Collecting data... (' + str(how_many_samples) + ' minutes)')
     sample_data = pd.DataFrame()
     for i in range(how_many_samples):
-        candle_stick = get_candle_stick()
-        sample_data = sample_data.append({'open': candle_stick['open'], 'high': candle_stick['high'], 'low': candle_stick['low'], 'close': candle_stick['close'], }, ignore_index=True)
+        candle_data = get_candle_stick()
+        sample_data = sample_data.append({'open': candle_data['open'], 'high': candle_data['high'], 'low': candle_data['low'], 'close': candle_data['close'], }, ignore_index=True)
     print('Collection is complete!')
     return sample_data
 
@@ -292,6 +294,9 @@ while True:
 
         # ヒストグラムが減少したとき
         sell_flg = macd.iloc[-2]['histogram'] > macd.iloc[-1]['histogram']
+    else:
+        print('Invalid algorithm.')
+        sys.exit()
 
     if order_id is None and buy_flg:
         # 未購入状態で-xσを下回っていたら買い注文実施
