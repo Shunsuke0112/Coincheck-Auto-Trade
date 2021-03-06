@@ -1,8 +1,8 @@
-import os
-import time
-import json
 import datetime
+import json
+import os
 import sys
+import time
 import pandas as pd
 
 from coincheck.coincheck import CoinCheck
@@ -27,12 +27,16 @@ ALGORITHM = os.environ['ALGORITHM']
 # 購入金額
 AMOUNT = int(os.environ['AMOUNT'])
 
+###############
+# 環境変数チェック
+###############
+
 # 暗号通貨の判定
 if not (COIN == 'btc' or
         COIN == 'etc' or
         COIN == 'fct' or
         COIN == 'mona'):
-    print('invalid coin.')
+    print('Invalid coin.')
     sys.exit()
 
 # アルゴリズムの判定
@@ -40,19 +44,31 @@ if not (ALGORITHM == 'DIFFERENCE' or
         ALGORITHM == 'BOLLINGER_BANDS' or
         ALGORITHM == 'MACD' or
         ALGORITHM == 'HYBRID'):
-    print('invalid algorithm.')
+    print('Invalid algorithm.')
     sys.exit()
 
+# レートを取得してみる
+params = {
+    'order_type': 'buy',
+    'pair': PAIR,
+    'amount': 0.005
+}
+res = coinCheck.order.rate(params)
+res_json = json.loads(res)
+
+# キーが有効であるか
+is_valid_key = res_json['success']
 # 最小注文数量（円）
 min_amount = 500
+
+# BTCの場合は0.005以上からしか購入できない
 if COIN == 'btc':
-    params = {
-        'order_type': 'buy',
-        'pair': PAIR,
-        'amount': 0.005
-    }
-    res = coinCheck.order.rate(params)
-    min_amount = json.loads(res)['price']
+    min_amount = res_json['price']
+
+# APIキーの判定
+if not is_valid_key:
+    print('Invalid API key.')
+    sys.exit()
 
 # 購入金額の判定
 if AMOUNT < min_amount:
@@ -62,6 +78,10 @@ if AMOUNT < min_amount:
 print('ALGORITHM: ' + ALGORITHM)
 print('Buy ' + COIN + ' for ' + str(AMOUNT) + ' Yen')
 
+
+###############
+# 関数
+###############
 
 @retry(exceptions=Exception, delay=1)
 def get_last():
@@ -189,6 +209,10 @@ def get_status():
         COIN: account_balance_json[COIN],  # COIN
     }
 
+
+###############
+# メイン処理
+###############
 
 # 空のデータフレーム作り、サンプルデータを入れる
 df = data_collecting()
