@@ -63,7 +63,7 @@ min_amount = 500
 
 # BTCの場合は0.005以上からしか購入できない
 if COIN == 'btc':
-    min_amount = res_json['price']
+    min_amount = float(res_json['price'])
 
 # APIキーの判定
 if not is_valid_key:
