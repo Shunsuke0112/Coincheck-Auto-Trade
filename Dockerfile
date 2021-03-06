@@ -17,4 +17,4 @@ RUN pip install --upgrade setuptools
 RUN pip install pandas
 RUN pip install retry
 
-CMD [ "python", "./hybrid.py" ]
+CMD [ "python", "./main.py" ]
