@@ -109,7 +109,7 @@ def get_candle_stick():
             candle['open'] = price
             candle['high'] = price
             candle['low'] = price
-        elif j == interval:
+        elif j == interval - 1:
             candle['close'] = price
 
         if j != 0:
