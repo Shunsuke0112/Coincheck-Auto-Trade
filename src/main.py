@@ -96,27 +96,27 @@ def get_last():
 
 def get_candle_stick():
     """
-    1分前のローソク足を算出
+    1分間のローソク足を算出
 
     :rtype: candle
     """
     candle = {}
     interval = 60
-    for j in range(interval):
+    for sec in range(1, interval + 1):
         price = get_last()
 
-        if j == 0:
+        if sec == 1:
             candle['open'] = price
             candle['high'] = price
             candle['low'] = price
-        elif j == interval - 1:
+        elif sec == interval:
             candle['close'] = price
 
-        if j != 0:
+        if sec != 1:
             candle['high'] = price if price > candle['high'] else candle['high']
             candle['low'] = price if price < candle['low'] else candle['low']
 
-        print('candle: ' + str(candle))
+        print(str(sec) + 'sec... candle: ' + str(candle))
         time.sleep(1)
     return candle
 
@@ -129,9 +129,10 @@ def data_collecting(how_many_samples=25):
     """
     print('Collecting data... (' + str(how_many_samples) + ' minutes)')
     sample_data = pd.DataFrame()
-    for i in range(how_many_samples):
+    for i in range(1, how_many_samples + 1):
         candle_data = get_candle_stick()
         sample_data = sample_data.append({'open': candle_data['open'], 'high': candle_data['high'], 'low': candle_data['low'], 'close': candle_data['close'], }, ignore_index=True)
+        print(str(i) + '/' + str(how_many_samples) + ' finish.')
     print('Collection is complete!')
     return sample_data
 
