@@ -119,12 +119,14 @@ def sell(order_id):
     """
     購入した量で売り注文を入れる（成行）
 
-    :rtype: order_json
+    :rtype: order_create_json
     """
     transactions = coinCheck.order.transactions()
     for transaction in json.loads(transactions)['transactions']:
         if order_id == transaction['order_id']:
-            coin_amount = transaction['funds'][COIN]
+            # TODO 買い注文が2つに分かれてるときがあるので一旦、全額売却にしておく
+            # coin_amount = transaction['funds'][COIN]
+            coin_amount = get_status()[COIN]
             params = {
                 'pair': PAIR,
                 'order_type': 'market_sell',
