@@ -11,7 +11,7 @@ from retry import retry
 coinCheck = CoinCheck(os.environ['ACCESS_KEY'], os.environ['API_SECRET'])
 
 ###############
-# 共通
+# 共通変数
 ###############
 
 # 注文ID
@@ -25,58 +25,7 @@ PAIR = COIN + '_jpy'
 # アルゴリズム
 ALGORITHM = os.environ['ALGORITHM']
 # 購入金額
-AMOUNT = int(os.environ['AMOUNT'])
-
-###############
-# 環境変数チェック
-###############
-
-# 暗号通貨の判定
-if not (COIN == 'btc' or
-        COIN == 'etc' or
-        COIN == 'fct' or
-        COIN == 'mona'):
-    print('Invalid coin.')
-    sys.exit()
-
-# アルゴリズムの判定
-if not (ALGORITHM == 'DIFFERENCE' or
-        ALGORITHM == 'BOLLINGER_BANDS' or
-        ALGORITHM == 'MACD' or
-        ALGORITHM == 'HYBRID'):
-    print('Invalid algorithm.')
-    sys.exit()
-
-# レートを取得してみる
-params = {
-    'order_type': 'buy',
-    'pair': PAIR,
-    'amount': 0.005
-}
-res = coinCheck.order.rate(params)
-res_json = json.loads(res)
-
-# キーが有効であるか
-is_valid_key = res_json['success']
-# 最小注文数量（円）
-min_amount = 500
-
-# BTCの場合は0.005以上からしか購入できない
-if COIN == 'btc':
-    min_amount = float(res_json['price'])
-
-# APIキーの判定
-if not is_valid_key:
-    print('Invalid API key.')
-    sys.exit()
-
-# 購入金額の判定
-if AMOUNT < min_amount:
-    print('Please specify more than ' + str(min_amount) + ' Yen')
-    sys.exit()
-
-print('ALGORITHM: ' + ALGORITHM)
-print('Buy ' + COIN + ' for ' + str(AMOUNT) + ' Yen')
+AMOUNT = os.getenv('AMOUNT')
 
 
 ###############
@@ -174,16 +123,16 @@ def sell(order_id):
                 'amount': coin_amount,
             }
             order = coinCheck.order.create(params)
-            order_json = json.loads(order)
+            order_create_json = json.loads(order)
 
-            if order_json['success']:
-                return order_json
+            if order_create_json['success']:
+                return order_create_json
             else:
                 print(order)
                 return None
 
 
-def get_rate(order_type, amount):
+def get_rate(order_type, coin_amount):
     """
     レートを取得する
 
@@ -192,7 +141,7 @@ def get_rate(order_type, amount):
     params = {
         'order_type': order_type,
         'pair': PAIR,
-        'amount': amount
+        'amount': coin_amount
     }
     order_rate = coinCheck.order.rate(params)
     return json.loads(order_rate)
@@ -212,6 +161,61 @@ def get_status():
         COIN: account_balance_json[COIN],  # COIN
     }
 
+
+def get_amount():
+    if AMOUNT is None or AMOUNT == '':
+        # 未指定の場合は満額設定
+        amo = float(get_status()['jpy'])
+    else:
+        amo = int(AMOUNT)
+    return amo
+
+
+###############
+# 環境変数チェック
+###############
+
+# 暗号通貨の判定
+if not (COIN == 'btc' or
+        COIN == 'etc' or
+        COIN == 'fct' or
+        COIN == 'mona'):
+    print('Invalid coin.')
+    sys.exit()
+
+# アルゴリズムの判定
+if not (ALGORITHM == 'DIFFERENCE' or
+        ALGORITHM == 'BOLLINGER_BANDS' or
+        ALGORITHM == 'MACD' or
+        ALGORITHM == 'HYBRID'):
+    print('Invalid algorithm.')
+    sys.exit()
+
+# レートを取得してみる
+res_json = get_rate('sell', 0.005)
+
+# キーが有効であるか
+is_valid_key = res_json['success']
+
+# APIキーの判定
+if not is_valid_key:
+    print('Invalid API key.')
+    sys.exit()
+
+# 最小注文数量（円）
+min_amount = 500
+# BTCの場合は0.005以上からしか購入できない
+if COIN == 'btc':
+    min_amount = float(res_json['price'])
+
+# 購入金額の判定
+amount = get_amount()
+if amount < min_amount:
+    print('Please specify more than ' + str(min_amount) + ' Yen')
+    sys.exit()
+
+print('ALGORITHM: ' + ALGORITHM)
+print('Buy ' + COIN + ' for ' + str(amount) + ' Yen')
 
 ###############
 # メイン処理
@@ -303,7 +307,7 @@ while True:
         # 未購入状態で-xσを下回っていたら買い注文実施
         print('Execute a buy order!')
         try:
-            order_json = buy(AMOUNT)
+            order_json = buy(get_amount())
             if order_json is not None:
                 order_id = order_json['id']
                 profit -= float(order_json['market_buy_amount'])

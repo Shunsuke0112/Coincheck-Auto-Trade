@@ -76,7 +76,8 @@ API_SECRET=YYYYYYYYYYYYYYYYYYYY
 COIN=btc  
 # アルゴリズム（DIFFERENCE, BOLLINGER_BANDS, MACD, HYBRID）  
 ALGORITHM=HYBRID  
-# 1回の取引で購入する金額（円） 500円以上、ビットコインの場合は(0.005*レート)円以上  
+# 1回の取引で購入する金額（円）500円以上、ビットコインの場合は(0.005*レート)円以上 
+# 未設定の場合は満額 
 AMOUNT=45000
 ```
 
