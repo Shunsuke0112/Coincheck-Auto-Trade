@@ -65,7 +65,15 @@ def get_candle_stick():
             candle['high'] = price if price > candle['high'] else candle['high']
             candle['low'] = price if price < candle['low'] else candle['low']
 
-        print(str(sec).zfill(2) + 'sec... profit: ' + str(profit) + ' candle: ' + str(candle))
+        var = {
+            'profit': profit,
+            'order_id': order_id,
+            'COIN': COIN,
+            'PAIR': PAIR,
+            'ALGORITHM': ALGORITHM,
+            'AMOUNT': AMOUNT
+        }
+        print(str(sec).zfill(2) + 'sec... var: ' + str(var) + ' candle: ' + str(candle))
         time.sleep(1)
     return candle
 
