@@ -16,6 +16,8 @@ coinCheck = CoinCheck(os.environ['ACCESS_KEY'], os.environ['API_SECRET'])
 
 # 注文ID
 order_id = None
+# 購入金額
+market_buy_amount = 0
 # 利益
 profit = 0
 
@@ -67,6 +69,7 @@ def get_candle_stick():
 
         var = {
             'profit': profit,
+            'market_buy_amount': market_buy_amount,
             'order_id': order_id,
             'COIN': COIN,
             'PAIR': PAIR,
@@ -323,7 +326,7 @@ while True:
             order_json = buy(get_amount())
             if order_json is not None:
                 order_id = order_json['id']
-                profit -= float(order_json['market_buy_amount'])
+                market_buy_amount = float(order_json['market_buy_amount'])
         except Exception as e:
             print(e)
     elif order_id is not None and sell_flg:
@@ -334,7 +337,8 @@ while True:
             if order_json is not None:
                 order_id = None
                 order_rate_json = get_rate('sell', order_json['amount'])
-                profit += float(order_rate_json['price'])
+                profit += float(order_rate_json['price']) - market_buy_amount
+                market_buy_amount = 0
         except Exception as e:
             print(e)
 
