@@ -167,7 +167,7 @@ def get_amount():
         # 未指定の場合は満額設定
         amo = float(get_status()['jpy'])
     else:
-        amo = int(AMOUNT)
+        amo = float(AMOUNT)
     return amo
 
 
