@@ -271,8 +271,8 @@ while True:
 
         # MACDがシグナルを下から上に抜けるとき
         buy_flg = macd.iloc[-2]['histogram'] < 0 and macd.iloc[-1]['histogram'] > 0
-        # ヒストグラムが減少したとき
-        sell_flg = macd.iloc[-2]['histogram'] > macd.iloc[-1]['histogram']
+        # ヒストグラムが減少したとき（ヒストグラムがプラス状態であるときのみ）
+        sell_flg = macd.iloc[-2]['histogram'] > macd.iloc[-1]['histogram'] and macd.iloc[-2]['histogram'] > 0
     elif ALGORITHM == 'HYBRID':
         # ボリンジャーバンドの期間（基本は20）
         duration = 20
