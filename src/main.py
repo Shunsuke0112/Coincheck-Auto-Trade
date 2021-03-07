@@ -155,11 +155,14 @@ def get_status():
     """
     account_balance = coinCheck.account.balance()
     account_balance_json = json.loads(account_balance)
-    return {
-        'profit': profit,  # 利益
-        'jpy': account_balance_json['jpy'],  # 円
-        COIN: account_balance_json[COIN],  # COIN
-    }
+    if account_balance_json['success']:
+        return {
+            'profit': profit,  # 利益
+            'jpy': account_balance_json['jpy'],  # 円
+            COIN: account_balance_json[COIN],  # COIN
+        }
+    else:
+        return account_balance_json
 
 
 def get_amount():
