@@ -300,8 +300,8 @@ while True:
         macd['signal'] = macd['macd'].ewm(span=9).mean()
         macd['histogram'] = macd['macd'] - macd['signal']
 
-        # ヒストグラムが減少したとき
-        sell_flg = macd.iloc[-2]['histogram'] > macd.iloc[-1]['histogram']
+        # ヒストグラムが減少したとき（ヒストグラムがプラス状態であるときのみ）
+        sell_flg = macd.iloc[-2]['histogram'] > macd.iloc[-1]['histogram'] and macd.iloc[-2]['histogram'] > 0
     else:
         print('Invalid algorithm.')
         sys.exit()
