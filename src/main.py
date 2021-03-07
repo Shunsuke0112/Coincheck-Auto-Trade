@@ -98,7 +98,7 @@ def buy(market_buy_amount):
     """
     指定した金額で買い注文を入れる（成行）
 
-    :rtype: order_json
+    :rtype: order_create_json
     """
     params = {
         'pair': PAIR,
@@ -106,10 +106,10 @@ def buy(market_buy_amount):
         'market_buy_amount': market_buy_amount,  # 量ではなく金額
     }
     order = coinCheck.order.create(params)
-    order_json = json.loads(order)
+    order_create_json = json.loads(order)
 
-    if order_json['success']:
-        return order_json
+    if order_create_json['success']:
+        return order_create_json
     else:
         print(order)
         return None
