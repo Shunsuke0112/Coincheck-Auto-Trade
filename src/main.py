@@ -72,7 +72,7 @@ def get_candle_stick():
 
 def data_collecting(how_many_samples=25):
     """
-    初めの25回は取引をせずに価格データを集める
+    初めの数回は取引をせずに価格データを集める
 
     :rtype: price_list
     """
@@ -225,7 +225,7 @@ print('Buy ' + COIN + ' for ' + str(amount) + ' Yen')
 ###############
 
 # 空のデータフレーム作り、サンプルデータを入れる
-df = data_collecting()
+df = data_collecting(3 if ALGORITHM == 'DIFFERENCE' else 25)
 
 # 以下無限ループ
 while True:
