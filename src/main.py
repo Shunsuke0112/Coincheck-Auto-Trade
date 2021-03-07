@@ -225,7 +225,7 @@ print('Buy ' + COIN + ' for ' + str(amount) + ' Yen')
 ###############
 
 # 空のデータフレーム作り、サンプルデータを入れる
-df = data_collecting(3 if ALGORITHM == 'DIFFERENCE' else 25)
+df = data_collecting(2 if ALGORITHM == 'DIFFERENCE' else 25)
 
 # 以下無限ループ
 while True:
