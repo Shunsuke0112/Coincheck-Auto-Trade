@@ -29,6 +29,13 @@ ALGORITHM = os.environ['ALGORITHM']
 # 購入金額
 AMOUNT = os.getenv('AMOUNT')
 
+# シミュレーションモード
+SIMULATION = os.getenv('SIMULATION')
+simulation = False if SIMULATION is None or SIMULATION == '' or SIMULATION == 'false' else True
+# シミュレーション用通貨
+simulation_jpy = 100000.0
+simulation_coin = 0.0
+
 
 ###############
 # 関数
@@ -118,6 +125,25 @@ def buy(market_buy_amount):
         return None
 
 
+def simulation_buy(market_buy_amount):
+    """
+    シミュレーション：指定した金額で買い注文を入れる（成行）
+
+    :rtype: order_create_json
+    """
+    params = {
+        'order_type': 'buy',
+        'pair': PAIR,
+        'price': market_buy_amount
+    }
+    order_rate = coinCheck.order.rate(params)
+    return {
+        'id': 'simulation',
+        'market_buy_amount': market_buy_amount,
+        'amount': json.loads(order_rate)['amount'],
+    }
+
+
 def sell(order_id):
     """
     購入した量で売り注文を入れる（成行）
@@ -145,6 +171,17 @@ def sell(order_id):
                 return None
 
 
+def simulation_sell(order_id):
+    """
+    シミュレーション：購入した量で売り注文を入れる（成行）
+
+    :rtype: order_create_json
+    """
+    return {
+        'amount': simulation_coin
+    }
+
+
 def get_rate(order_type, coin_amount):
     """
     レートを取得する
@@ -166,6 +203,13 @@ def get_status():
 
     :rtype: {}
     """
+    if simulation:
+        return {
+            'profit': profit,  # 利益
+            'jpy': simulation_jpy,  # 円
+            COIN: simulation_coin,  # COIN
+        }
+
     account_balance = coinCheck.account.balance()
     account_balance_json = json.loads(account_balance)
     if account_balance_json['success']:
@@ -232,6 +276,13 @@ if amount < min_amount:
 
 print('ALGORITHM: ' + ALGORITHM)
 print('Buy ' + COIN + ' for ' + str(amount) + ' Yen')
+
+if not simulation:
+    print('##############################')
+    print('####                      ####')
+    print('####   Production Mode!   ####')
+    print('####                      ####')
+    print('##############################')
 
 ###############
 # メイン処理
@@ -323,22 +374,28 @@ while True:
         # 未購入状態で-xσを下回っていたら買い注文実施
         print('Execute a buy order!')
         try:
-            order_json = buy(get_amount())
+            order_json = simulation_buy(get_amount()) if simulation else buy(get_amount())
             if order_json is not None:
                 order_id = order_json['id']
                 market_buy_amount = float(order_json['market_buy_amount'])
+                if simulation:
+                    simulation_jpy -= get_amount()
+                    simulation_coin += float(order_json['amount'])
         except Exception as e:
             print(e)
     elif order_id is not None and sell_flg:
         # 購入状態で+xσを上回っていたら売り注文実施
         print('Execute a sell order!')
         try:
-            order_json = sell(order_id)
+            order_json = simulation_sell(order_id) if simulation else sell(order_id)
             if order_json is not None:
                 order_id = None
                 order_rate_json = get_rate('sell', order_json['amount'])
                 profit += float(order_rate_json['price']) - market_buy_amount
                 market_buy_amount = 0
+                if simulation:
+                    simulation_jpy += float(order_rate_json['price'])
+                    simulation_coin = 0
         except Exception as e:
             print(e)
 
