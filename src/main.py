@@ -247,7 +247,8 @@ if not (COIN == 'btc' or
 if not (ALGORITHM == 'DIFFERENCE' or
         ALGORITHM == 'BOLLINGER_BANDS' or
         ALGORITHM == 'MACD' or
-        ALGORITHM == 'HYBRID'):
+        ALGORITHM == 'HYBRID' or
+        ALGORITHM == 'RSI'):
     print('Invalid algorithm.')
     sys.exit()
 
@@ -324,6 +325,8 @@ while True:
         buy_flg = df.iloc[-1]['close'] < df.iloc[-1]['-' + str(sigma) + 'σ']
         sell_flg = df.iloc[-1]['close'] > df.iloc[-1]['+' + str(sigma) + 'σ']
     elif ALGORITHM == 'MACD':
+        # http://www.algo-fx-blog.com/macd-python-technical-indicators/
+
         macd = pd.DataFrame()
         macd['close'] = df['close']
         macd['ema_12'] = df['close'].ewm(span=12).mean()
@@ -366,6 +369,33 @@ while True:
 
         # ヒストグラムが減少したとき（ヒストグラムがプラス状態であるときのみ）
         sell_flg = macd.iloc[-2]['histogram'] > macd.iloc[-1]['histogram'] and macd.iloc[-2]['histogram'] > 0
+    elif ALGORITHM == 'RSI':
+        # http://www.algo-fx-blog.com/rsi-python-ml-features/
+
+        # RSIの期間（基本は14）
+        duration = 14
+
+        close = df['close']
+        diff = close.diff()
+        # 最初の欠損レコードを切り落とす
+        diff = diff[1:]
+
+        # 値上がり幅、値下がり幅をシリーズへ切り分け
+        up, down = diff.copy(), diff.copy()
+        up[up < 0] = 0
+        down[down > 0] = 0
+
+        # 値上がり幅/値下がり幅の単純移動平均（14)を処理
+        up_sma_14 = up.rolling(window=duration, center=False).mean()
+        down_sma_14 = down.abs().rolling(window=duration, center=False).mean()
+
+        # RSIの計算
+        RS = up_sma_14 / down_sma_14
+        RSI = 100.0 - (100.0 / (1.0 + RS))
+        print('RSI: ' + str(RSI.iloc[-1]))
+
+        buy_flg = float(RSI.iloc[-1]) <= 30
+        sell_flg = float(RSI.iloc[-1]) >= 70
     else:
         print('Invalid algorithm.')
         sys.exit()
