@@ -20,6 +20,8 @@ order_id = None
 market_buy_amount = 0
 # 利益
 profit = 0
+# 計測間隔
+INTERVAL = 60
 
 # 通貨
 COIN = os.environ['COIN']
@@ -59,15 +61,14 @@ def get_candle_stick():
     :rtype: candle
     """
     candle = {}
-    interval = 60
-    for sec in range(1, interval + 1):
+    for sec in range(1, INTERVAL + 1):
         price = get_last()
 
         if sec == 1:
             candle['open'] = price
             candle['high'] = price
             candle['low'] = price
-        elif sec == interval:
+        elif sec == INTERVAL:
             candle['close'] = price
 
         if sec != 1:
@@ -94,7 +95,7 @@ def data_collecting(how_many_samples=25):
 
     :rtype: price_list
     """
-    print('Collecting data... (' + str(how_many_samples) + ' minutes)')
+    print('Collecting data... (' + str(how_many_samples * INTERVAL) + ' sec)')
     sample_data = pd.DataFrame()
     for i in range(1, how_many_samples + 1):
         candle_data = get_candle_stick()
