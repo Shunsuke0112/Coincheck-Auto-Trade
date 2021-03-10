@@ -18,7 +18,7 @@ def create_result(buy_flg, sell_flg):
 
 
 def difference(df):
-    # TODO 基準値と終値をログ出力
+    print(str(df.iloc[-3]['close']) + ' -> ' + str(df.iloc[-2]['close']) + ' -> ' + str(df.iloc[-1]['close']))
     # 下降→上昇
     buy_flg = df.iloc[-3]['close'] > df.iloc[-2]['close'] < df.iloc[-1]['close']
     # 移動平均線が降下トレンドになったら
@@ -41,6 +41,9 @@ def bollinger_bands(df):
     df['-' + str(sigma) + 'σ'] = df['SMA'] - sigma * df['std']
     df['+' + str(sigma) + 'σ'] = df['SMA'] + sigma * df['std']
 
+    print('-' + str(sigma) + 'σ: ' + str(df.iloc[-1]['-' + str(sigma) + 'σ']))
+    print('+' + str(sigma) + 'σ: ' + str(df.iloc[-1]['+' + str(sigma) + 'σ']))
+
     # 最新の値段が±xσ区間を超えているか判定
     buy_flg = df.iloc[-1]['close'] < df.iloc[-1]['-' + str(sigma) + 'σ']
     sell_flg = df.iloc[-1]['close'] > df.iloc[-1]['+' + str(sigma) + 'σ']
@@ -58,6 +61,8 @@ def macd(df):
     macd['macd'] = macd['ema_12'] - macd['ema_26']
     macd['signal'] = macd['macd'].ewm(span=9).mean()
     macd['histogram'] = macd['macd'] - macd['signal']
+
+    print(str(macd.iloc[-2]['histogram']) + ' -> ' + str(macd.iloc[-1]['histogram']))
 
     # MACDがシグナルを下から上に抜けるとき
     buy_flg = macd.iloc[-2]['histogram'] < 0 and macd.iloc[-1]['histogram'] > 0
@@ -81,6 +86,9 @@ def hybrid(df):
     df['-' + str(sigma) + 'σ'] = df['SMA'] - sigma * df['std']
     df['+' + str(sigma) + 'σ'] = df['SMA'] + sigma * df['std']
 
+    print('-' + str(sigma) + 'σ: ' + str(df.iloc[-1]['-' + str(sigma) + 'σ']))
+    print('+' + str(sigma) + 'σ: ' + str(df.iloc[-1]['+' + str(sigma) + 'σ']))
+
     # 最新の値段が±xσ区間を超えているか判定
     buy_flg = df.iloc[-1]['close'] < df.iloc[-1]['-' + str(sigma) + 'σ']
 
@@ -92,6 +100,8 @@ def hybrid(df):
     macd['macd'] = macd['ema_12'] - macd['ema_26']
     macd['signal'] = macd['macd'].ewm(span=9).mean()
     macd['histogram'] = macd['macd'] - macd['signal']
+
+    print(str(macd.iloc[-2]['histogram']) + ' -> ' + str(macd.iloc[-1]['histogram']))
 
     # ヒストグラムが減少したとき（ヒストグラムがプラス状態であるときのみ）
     sell_flg = macd.iloc[-2]['histogram'] > macd.iloc[-1]['histogram'] and macd.iloc[-2]['histogram'] > 0
