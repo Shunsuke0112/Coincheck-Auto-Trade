@@ -1,4 +1,4 @@
-# Coincheckオートトレード
+# Coincheck Auto Trade
 
 ## アルゴリズム
 
@@ -33,6 +33,22 @@
 買い：-2σを下回ったとき
 
 売り：ヒストグラムが減少したとき
+
+### RSI
+
+**RSIによる判定**
+
+買い：RSIが30を下回ったとき
+
+売り：RSIが70を上回ったとき
+
+### MIX
+
+**ボリンジャーバンド・RSIによる判定**
+
+買い：-2σを下回ったとき or RSIが30を下回ったとき
+
+売り：+2σを上回ったとき or RSIが70を上回ったとき
 
 ## 環境
 
@@ -70,15 +86,37 @@ CoincheckでAPIキーを発行する。
 ```
 # 発行したアクセスキー
 ACCESS_KEY=XXXXXXXXXXXX
+
 # 発行したシークレットキー
 API_SECRET=YYYYYYYYYYYYYYYYYYYY
+
 # 売買を行う通貨（btc, etc, fct, mona）  
 COIN=btc  
-# アルゴリズム（DIFFERENCE, BOLLINGER_BANDS, MACD, HYBRID）  
+
+# アルゴリズム（DIFFERENCE, BOLLINGER_BANDS, MACD, HYBRID, RSI, MIX）  
 ALGORITHM=HYBRID  
+
 # 1回の取引で購入する金額（円）500円以上、ビットコインの場合は(0.005*レート)円以上 
 # 未設定の場合は満額 
 AMOUNT=45000
+
+# シミュレーションモード
+SIMULATION=true
+
+# ローソク足の期間
+INTERVAL=60
+
+# DynamoDBアクセスキー
+AWS_ACCESS_KEY_ID=XXXXXXXXXXXX
+
+# DynamoDBシークレットキー
+AWS_SECRET_ACCESS_KEY=YYYYYYYYYYYYYYYYYYYY
+
+# DynamoDBリージョン
+AWS_DEFAULT_REGION=ap-northeast-1
+
+# コンテナ名
+COMPOSE_PROJECT_NAME=coincheck-auto-trade-container
 ```
 
 ## 実行
