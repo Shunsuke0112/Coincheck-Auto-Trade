@@ -4,6 +4,7 @@ services:
     restart: always
     build: .
     image: 'coincheck-auto-trade'
+    container_name: 'coincheck-auto-trade-container'
     working_dir: '/root/src'
     tty: true
     env_file:

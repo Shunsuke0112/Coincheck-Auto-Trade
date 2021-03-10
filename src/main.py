@@ -146,7 +146,7 @@ while True:
     print(time + ' ' + str(status))
 
     # データログ送信
-    dynamo_record_create(environment.simulation, time, environment.CONTAINER_NAME,
+    dynamo_record_create(environment.simulation, time, environment.PROJECT_NAME,
                          environment.ALGORITHM, environment.profit, candle_stick['close'], buying, selling)
 
     # 先頭行を削除してdfの長さを一定に保つ（長時間の運用時のメモリ対策）

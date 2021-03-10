@@ -1,7 +1,7 @@
 import boto3
 
 
-def dynamo_record_create(simulation, create_at, container_name, algorithm, profit, price, buying, selling):
+def dynamo_record_create(simulation, create_at, project_name, algorithm, profit, price, buying, selling):
     try:
         dynamo_db = boto3.resource('dynamodb')
 
@@ -12,7 +12,7 @@ def dynamo_record_create(simulation, create_at, container_name, algorithm, profi
         table.put_item(
             Item={
                 'create_at': create_at,  # 時刻
-                'name': container_name,  # コンテナ名
+                'name': project_name,  # プロジェクト名
                 'algorithm': algorithm,  # アルゴリズム
                 'profit': int(profit),  # 利益
                 'price': int(price),  # 終値
