@@ -7,7 +7,7 @@ import pandas as pd
 
 def create_result(buy_flg, sell_flg):
     """
-
+    アルゴリズム実行後のレスポンス
 
     :rtype: {}
     """
@@ -18,6 +18,11 @@ def create_result(buy_flg, sell_flg):
 
 
 def difference(df):
+    """
+    上昇下降トレンドによる判定
+
+    :rtype: {}
+    """
     print(str(df.iloc[-3]['close']) + ' -> ' + str(df.iloc[-2]['close']) + ' -> ' + str(df.iloc[-1]['close']))
     # 下降→上昇
     buy_flg = df.iloc[-3]['close'] > df.iloc[-2]['close'] < df.iloc[-1]['close']
@@ -27,6 +32,11 @@ def difference(df):
 
 
 def bollinger_bands(df):
+    """
+    ボリンジャーバンドによる判定
+
+    :rtype: {}
+    """
     # ボリンジャーバンドの期間（基本は20）
     duration = 20
     # σの値
@@ -51,6 +61,11 @@ def bollinger_bands(df):
 
 
 def macd(df):
+    """
+    MACDによる判定
+
+    :rtype: {}
+    """
     # http://www.algo-fx-blog.com/macd-python-technical-indicators/
 
     macd = pd.DataFrame()
@@ -72,6 +87,11 @@ def macd(df):
 
 
 def hybrid(df):
+    """
+    ボリンジャーバンドとMACDによる判定
+
+    :rtype: {}
+    """
     # ボリンジャーバンドの期間（基本は20）
     duration = 20
     # σの値
@@ -109,6 +129,11 @@ def hybrid(df):
 
 
 def rsi(df):
+    """
+    RSIによる判定
+
+    :rtype: {}
+    """
     # http://www.algo-fx-blog.com/rsi-python-ml-features/
 
     # RSIの期間（基本は14）
