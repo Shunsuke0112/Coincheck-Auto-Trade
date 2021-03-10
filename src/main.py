@@ -1,9 +1,9 @@
 import datetime
 import sys
 
-from src.api import *
-from src.algorithm import *
-from src.dynamodb import *
+from api import *
+from algorithm import *
+from dynamodb import *
 
 ##############################
 # 環境変数チェック
@@ -60,9 +60,9 @@ if not environment.simulation:
     print('####                      ####')
     print('##############################')
 
-###############
+##############################
 # メイン処理
-###############
+##############################
 
 # 空のデータフレーム作り、サンプルデータを入れる
 df = data_collecting(2 if environment.ALGORITHM == 'DIFFERENCE' else 25)

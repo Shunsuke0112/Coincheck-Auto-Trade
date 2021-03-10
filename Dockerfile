@@ -15,6 +15,7 @@ RUN pip install --upgrade pip
 RUN pip install --upgrade setuptools
 
 RUN pip install pandas
+RUN pip install boto3
 RUN pip install retry
 
 CMD [ "python", "./main.py" ]
