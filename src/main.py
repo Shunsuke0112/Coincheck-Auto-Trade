@@ -3,6 +3,7 @@ import sys
 
 from src.api import *
 from src.algorithm import *
+from src.dynamodb import *
 
 ##############################
 # 環境変数チェック
@@ -98,14 +99,18 @@ while True:
     elif environment.ALGORITHM == 'MIX':
         bollinger_bands_result = bollinger_bands(df)
         rsi_result = rsi(df)
-
         buy_flg = bollinger_bands_result['buy_flg'] or rsi_result['buy_flg']
         sell_flg = bollinger_bands_result['sell_flg'] or rsi_result['sell_flg']
     else:
         print('Invalid algorithm.')
         sys.exit()
 
-    if environment.order_id is None and buy_flg:
+    # 買い注文実施判定
+    buying = environment.order_id is None and buy_flg
+    # 売り注文実施判定
+    selling = environment.order_id is not None and sell_flg
+
+    if buying:
         # 未購入状態で-xσを下回っていたら買い注文実施
         print('Execute a buy order!')
         try:
@@ -118,7 +123,7 @@ while True:
                     environment.simulation_coin += float(order_json['amount'])
         except Exception as e:
             print(e)
-    elif environment.order_id is not None and sell_flg:
+    elif selling:
         # 購入状態で+xσを上回っていたら売り注文実施
         print('Execute a sell order!')
         try:
@@ -136,8 +141,13 @@ while True:
 
     # 現在の時刻・金額を表示
     dt_now = datetime.datetime.now()
+    time = dt_now.strftime('%Y/%m/%d %H:%M:%S')
     status = get_status()
-    print(dt_now.strftime('%Y/%m/%d %H:%M:%S') + ' ' + str(status))
+    print(time + ' ' + str(status))
+
+    # データログ送信
+    dynamo_record_create(environment.simulation, time, environment.CONTAINER_NAME,
+                         environment.ALGORITHM, environment.profit, candle_stick['close'], buying, selling)
 
     # 先頭行を削除してdfの長さを一定に保つ（長時間の運用時のメモリ対策）
     df = df.drop(df.index[0])

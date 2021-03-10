@@ -29,3 +29,6 @@ AMOUNT = os.getenv('AMOUNT')
 # シミュレーションモード
 SIMULATION = os.getenv('SIMULATION')
 simulation = False if SIMULATION is None or SIMULATION == '' or SIMULATION == 'false' else True
+
+# コンテナ名
+CONTAINER_NAME = os.environ['COMPOSE_PROJECT_NAME']
