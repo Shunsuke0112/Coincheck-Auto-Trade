@@ -6,7 +6,7 @@ def dynamo_record_create(simulation, create_at, container_name, algorithm, profi
         dynamo_db = boto3.resource('dynamodb')
 
         # DynamoDBのテーブル名
-        table_name = 'coincheck-auto-trade-prod' if simulation else 'coincheck-auto-trade'
+        table_name = 'coincheck-auto-trade-simulation' if simulation else 'coincheck-auto-trade'
         table = dynamo_db.Table(table_name)
 
         table.put_item(
