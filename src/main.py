@@ -249,7 +249,8 @@ if not (ALGORITHM == 'DIFFERENCE' or
         ALGORITHM == 'BOLLINGER_BANDS' or
         ALGORITHM == 'MACD' or
         ALGORITHM == 'HYBRID' or
-        ALGORITHM == 'RSI'):
+        ALGORITHM == 'RSI' or
+        ALGORITHM == 'MIX'):
     print('Invalid algorithm.')
     sys.exit()
 
@@ -397,6 +398,52 @@ while True:
 
         buy_flg = float(RSI.iloc[-1]) <= 30
         sell_flg = float(RSI.iloc[-1]) >= 70
+    elif ALGORITHM == 'MIX':
+        # ボリンジャーバンドの期間（基本は20）
+        bollinger_bands_duration = 20
+        # σの値
+        sigma = 2
+
+        # 移動平均
+        df['SMA'] = df['close'].rolling(window=bollinger_bands_duration).mean()
+        # 標準偏差
+        df['std'] = df['close'].rolling(window=bollinger_bands_duration).std()
+
+        # σ区間の境界線
+        df['-' + str(sigma) + 'σ'] = df['SMA'] - sigma * df['std']
+        df['+' + str(sigma) + 'σ'] = df['SMA'] + sigma * df['std']
+
+        # 最新の値段が±xσ区間を超えているか判定
+        bollinger_bands_buy_flg = df.iloc[-1]['close'] < df.iloc[-1]['-' + str(sigma) + 'σ']
+        bollinger_bands_sell_flg = df.iloc[-1]['close'] > df.iloc[-1]['+' + str(sigma) + 'σ']
+
+        # RSIの期間（基本は14）
+        rsi_duration = 14
+
+        close = df['close']
+        diff = close.diff()
+        # 最初の欠損レコードを切り落とす
+        diff = diff[1:]
+
+        # 値上がり幅、値下がり幅をシリーズへ切り分け
+        up, down = diff.copy(), diff.copy()
+        up[up < 0] = 0
+        down[down > 0] = 0
+
+        # 値上がり幅/値下がり幅の単純移動平均（14)を処理
+        up_sma_14 = up.rolling(window=rsi_duration, center=False).mean()
+        down_sma_14 = down.abs().rolling(window=rsi_duration, center=False).mean()
+
+        # RSIの計算
+        RS = up_sma_14 / down_sma_14
+        RSI = 100.0 - (100.0 / (1.0 + RS))
+        print('RSI: ' + str(RSI.iloc[-1]))
+
+        rsi_buy_flg = float(RSI.iloc[-1]) <= 30
+        rsi_sell_flg = float(RSI.iloc[-1]) >= 70
+
+        buy_flg = bollinger_bands_buy_flg or rsi_buy_flg
+        sell_flg = bollinger_bands_sell_flg or rsi_sell_flg
     else:
         print('Invalid algorithm.')
         sys.exit()
