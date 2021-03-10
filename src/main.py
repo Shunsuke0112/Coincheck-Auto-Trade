@@ -21,7 +21,7 @@ market_buy_amount = 0
 # 利益
 profit = 0
 # 計測間隔
-INTERVAL = 60
+INTERVAL = int(os.environ['INTERVAL'])
 
 # 通貨
 COIN = os.environ['COIN']
