@@ -1,3 +1,5 @@
 .idea
-src/coincheck/__pycache__/*
 .env
+
+src/__pycache__/*
+src/coincheck/__pycache__/*
