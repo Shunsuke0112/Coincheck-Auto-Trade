@@ -117,6 +117,9 @@ AWS_DEFAULT_REGION=ap-northeast-1
 
 # コンテナ名
 COMPOSE_PROJECT_NAME=coincheck-auto-trade-container
+
+# 利益
+PROFIT=0
 ```
 
 ## 実行
