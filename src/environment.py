@@ -9,7 +9,8 @@ order_id = None
 # 購入金額
 market_buy_amount = 0
 # 利益
-profit = 0
+PROFIT = os.getenv('PROFIT')
+profit = float(PROFIT if type(PROFIT) is str and PROFIT != '' else 0.0)
 
 # シミュレーション用通貨
 simulation_jpy = 100000.0
