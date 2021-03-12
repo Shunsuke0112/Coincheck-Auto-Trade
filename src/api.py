@@ -170,6 +170,7 @@ def get_rate(order_type, coin_amount):
     return json.loads(order_rate)
 
 
+@retry(exceptions=Exception, delay=1)
 def get_status():
     """
     現在の状態を取得する
