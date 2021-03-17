@@ -111,7 +111,7 @@ while True:
     selling = environment.order_id is not None and sell_flg
 
     if buying:
-        # 未購入状態で-xσを下回っていたら買い注文実施
+        # 買い注文実施
         print('Execute a buy order!')
         try:
             order_json = simulation_buy(get_amount()) if environment.simulation else buy(get_amount())
@@ -124,18 +124,32 @@ while True:
         except Exception as e:
             print(e)
     elif selling:
-        # 購入状態で+xσを上回っていたら売り注文実施
+        # 売り注文実施
         print('Execute a sell order!')
         try:
             order_json = simulation_sell(environment.order_id) if environment.simulation else sell(environment.order_id)
             if order_json is not None:
                 environment.order_id = None
                 order_rate_json = get_rate('sell', order_json['amount'])
-                environment.profit += float(order_rate_json['price']) - environment.market_buy_amount
+                # 今回の取引の利益
+                profit = float(order_rate_json['price']) - environment.market_buy_amount
+                # 1%以上の損失を出しているか
+                loss_flg = environment.market_buy_amount * 0.01 + profit < 0
+                environment.profit += profit
                 environment.market_buy_amount = 0
                 if environment.simulation:
                     environment.simulation_jpy += float(order_rate_json['price'])
                     environment.simulation_coin = 0
+
+                now_down_flg = profit < 0
+                # 1%以上の損失を出している、もしくは2連続で損失が出たら暴落の可能性があるので一時停止する
+                if loss_flg or (environment.down_flg and now_down_flg):
+                    sleep()
+                    # 一時停止した後なのでリセット
+                    environment.down_flg = False
+                else:
+                    # 継続中なので今回の判定をセット
+                    environment.down_flg = now_down_flg
         except Exception as e:
             print(e)
 
