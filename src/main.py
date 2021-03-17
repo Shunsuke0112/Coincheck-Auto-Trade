@@ -147,6 +147,8 @@ while True:
                     sleep()
                     # 一時停止した後なのでリセット
                     environment.down_flg = False
+                    # サンプルデータ作り直し（この後、先頭行を削除されるので+1）
+                    df = data_collecting(2 + 1 if environment.ALGORITHM == 'DIFFERENCE' else 25 + 1)
                 else:
                     # 継続中なので今回の判定をセット
                     environment.down_flg = now_down_flg
