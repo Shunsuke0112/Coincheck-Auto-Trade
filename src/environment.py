@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 
 ##############################
 # 共通変数
@@ -11,13 +12,11 @@ market_buy_amount = 0
 # 利益
 PROFIT = os.getenv('PROFIT')
 profit = float(PROFIT if type(PROFIT) is str and PROFIT != '' else 0.0)
+df_profit = pd.DataFrame().append({'profit': profit, }, ignore_index=True)
 
 # シミュレーション用通貨
 simulation_jpy = 100000.0
 simulation_coin = 0.0
-
-# 前回の取引でマイナスだった場合のフラグ
-down_flg = False
 
 # 計測間隔
 INTERVAL = int(os.environ['INTERVAL'])

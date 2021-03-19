@@ -215,8 +215,8 @@ def get_amount():
     return amo
 
 
-def sleep():
-    for minute in range(0, environment.INTERVAL * 12):
+def sleep(hour):
+    for minute in range(0, environment.INTERVAL * hour):
         print(str(minute) + '/' + str(environment.INTERVAL * 12) + ' minutes passed...')
         for sec in range(1, environment.INTERVAL + 1):
             print(str(sec).zfill(2) + 'sec...')

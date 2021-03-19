@@ -129,25 +129,37 @@ while True:
             order_rate_json = get_rate('sell', order_json['amount'], None)
             # 今回の取引の利益
             profit = float(order_rate_json['price']) - environment.market_buy_amount
+            environment.profit += profit
+            environment.df_profit.append({'profit': profit, }, ignore_index=True)
+
+            #  df_profitのlength調整
+            if len(environment.df_profit.index) > 4:
+                environment.df_profit = environment.df_profit.drop(environment.df_profit.index[0])
+
             # 1%以上の損失を出しているか
             loss_flg = environment.market_buy_amount * 0.01 + profit < 0
-            environment.profit += profit
+            # 3連続の損失か
+            environment.df_profit['diff'] = environment.df_profit.diff()
+            down_flg = (environment.df_profit.iloc[-3]['diff'] < 0 and
+                        environment.df_profit.iloc[-2]['diff'] < 0 and
+                        environment.df_profit.iloc[-1]['diff'] < 0)
+
+            # 購入金額初期化
             environment.market_buy_amount = 0
+
+            # シミュレーションの場合
             if environment.simulation:
                 environment.simulation_jpy += float(order_rate_json['price'])
                 environment.simulation_coin = 0
 
-            now_down_flg = profit < 0
-            # 1%以上の損失を出している、もしくは2連続で損失が出たら暴落の可能性があるので一時停止する
-            if loss_flg or (environment.down_flg and now_down_flg):
-                sleep()
+            # 2%以上の損失を出している、もしくは2連続で損失が出たら暴落の可能性があるので一時停止する
+            if loss_flg or down_flg:
+                # 5時間停止
+                sleep(5)
                 # 一時停止した後なのでリセット
-                environment.down_flg = False
+                environment.df_profit = pd.DataFrame().append({'profit': profit, }, ignore_index=True)
                 # サンプルデータ作り直し（この後、先頭行を削除されるので+1）
                 df = data_collecting(2 + 1 if environment.ALGORITHM == 'DIFFERENCE' else 25 + 1)
-            else:
-                # 継続中なので今回の判定をセット
-                environment.down_flg = now_down_flg
 
     # 現在の時刻・金額を表示
     dt_now = datetime.datetime.now()
@@ -155,9 +167,11 @@ while True:
     status = get_status()
     print(time + ' ' + str(status))
 
-    # データログ送信
-    dynamo_record_create(environment.simulation, time, environment.PROJECT_NAME,
-                         environment.ALGORITHM, environment.profit, candle_stick['close'], buying, selling)
+    # 売買が発生した場合
+    if buying or selling:
+        # データログ送信
+        dynamo_record_create(environment.simulation, time, environment.PROJECT_NAME,
+                             environment.ALGORITHM, environment.profit, candle_stick['close'], buying, selling)
 
     # 先頭行を削除してdfの長さを一定に保つ（長時間の運用時のメモリ対策）
     df = df.drop(df.index[0])
