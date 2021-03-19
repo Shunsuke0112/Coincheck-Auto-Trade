@@ -53,6 +53,7 @@ if amount < min_amount:
 print('ALGORITHM: ' + environment.ALGORITHM)
 print('Buy ' + environment.COIN + ' for ' + str(amount) + ' Yen')
 
+# シミュレーションの場合
 if not environment.simulation:
     print('##############################')
     print('####                      ####')
@@ -114,9 +115,14 @@ while True:
         # 買い注文実施
         print('Execute a buy order!')
         order_json = simulation_buy(get_amount()) if environment.simulation else buy(get_amount())
+
+        # 買い注文成功の場合
         if order_json is not None:
+            # オーダーIDをセット
             environment.order_id = order_json['id']
+            # 購入金額をセット
             environment.market_buy_amount = float(order_json['market_buy_amount'])
+            # シミュレーションの場合
             if environment.simulation:
                 environment.simulation_jpy -= get_amount()
                 environment.simulation_coin += float(order_json['amount'])
@@ -124,13 +130,25 @@ while True:
         # 売り注文実施
         print('Execute a sell order!')
         order_json = simulation_sell() if environment.simulation else sell(environment.order_id)
+
+        # 売り注文成功の場合
         if order_json is not None:
+            # オーダーIDを初期化
             environment.order_id = None
+
+            # 利益を計算するためにレートを取得
             order_rate_json = get_rate('sell', order_json['amount'], None)
             # 今回の取引の利益
             profit = float(order_rate_json['price']) - environment.market_buy_amount
             environment.profit += profit
             environment.df_profit.append({'profit': profit, }, ignore_index=True)
+            # シミュレーションの場合
+            if environment.simulation:
+                environment.simulation_jpy += float(order_rate_json['price'])
+                environment.simulation_coin = 0
+
+            # 購入金額初期化
+            environment.market_buy_amount = 0
 
             #  df_profitのlength調整
             if len(environment.df_profit.index) > 4:
@@ -144,19 +162,11 @@ while True:
                         environment.df_profit.iloc[-2]['diff'] < 0 and
                         environment.df_profit.iloc[-1]['diff'] < 0)
 
-            # 購入金額初期化
-            environment.market_buy_amount = 0
-
-            # シミュレーションの場合
-            if environment.simulation:
-                environment.simulation_jpy += float(order_rate_json['price'])
-                environment.simulation_coin = 0
-
-            # 2%以上の損失を出している、もしくは2連続で損失が出たら暴落の可能性があるので一時停止する
+            # 1%以上の損失を出している、もしくは2連続で損失が出たら暴落の可能性があるので一時停止する
             if loss_flg or down_flg:
                 # 5時間停止
                 sleep(5)
-                # 一時停止した後なのでリセット
+                # 一時停止した後なので初期化
                 environment.df_profit = pd.DataFrame().append({'profit': profit, }, ignore_index=True)
                 # サンプルデータ作り直し（この後、先頭行を削除されるので+1）
                 df = data_collecting(2 + 1 if environment.ALGORITHM == 'DIFFERENCE' else 25 + 1)
