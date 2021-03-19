@@ -16,14 +16,45 @@ coinCheck = CoinCheck(os.environ['ACCESS_KEY'], os.environ['API_SECRET'])
 
 
 @retry(exceptions=Exception, delay=1)
-def get_last():
+def get_latest_trading_rate():
     """
-    ティッカーのlastを取得する（エラーの場合は1秒後に再実行）
+    最新の取引レートを取得する
 
-    :rtype: last
+    :rtype: json
     """
-    ticker = coinCheck.ticker.all()
-    return json.loads(ticker)['last']
+    if environment.COIN == 'btc':
+        ticker = coinCheck.ticker.all()
+        return json.loads(ticker)['last']
+
+    params = {
+        'pair': environment.PAIR
+    }
+    trade_all = coinCheck.trade.all(params)
+    data = json.loads(trade_all)['data']
+    return float(data[0]['rate'])
+
+
+@retry(exceptions=Exception, delay=1)
+def get_rate(order_type, coin_amount, price):
+    """
+    レートを取得する
+
+    :rtype: order_rate_json
+    """
+    if coin_amount is not None:
+        params = {
+            'order_type': order_type,
+            'pair': environment.PAIR,
+            'amount': coin_amount
+        }
+    else:
+        params = {
+            'order_type': order_type,
+            'pair': environment.PAIR,
+            'price': price
+        }
+    order_rate = coinCheck.order.rate(params)
+    return json.loads(order_rate)
 
 
 def get_candle_stick():
@@ -34,7 +65,7 @@ def get_candle_stick():
     """
     candle = {}
     for sec in range(1, environment.INTERVAL + 1):
-        price = get_last()
+        price = get_latest_trading_rate()
 
         if sec == 1:
             candle['open'] = price
@@ -104,16 +135,11 @@ def simulation_buy(market_buy_amount):
 
     :rtype: order_create_json
     """
-    params = {
-        'order_type': 'buy',
-        'pair': environment.PAIR,
-        'price': market_buy_amount
-    }
-    order_rate = coinCheck.order.rate(params)
+    order_rate = get_rate('buy', None, market_buy_amount)
     return {
         'id': 'simulation',
         'market_buy_amount': market_buy_amount,
-        'amount': json.loads(order_rate)['amount'],
+        'amount': order_rate['amount']
     }
 
 
@@ -144,7 +170,7 @@ def sell(order_id):
                 return None
 
 
-def simulation_sell(order_id):
+def simulation_sell():
     """
     シミュレーション：購入した量で売り注文を入れる（成行）
 
@@ -155,22 +181,6 @@ def simulation_sell(order_id):
     }
 
 
-def get_rate(order_type, coin_amount):
-    """
-    レートを取得する
-
-    :rtype: order_rate_json
-    """
-    params = {
-        'order_type': order_type,
-        'pair': environment.PAIR,
-        'amount': coin_amount
-    }
-    order_rate = coinCheck.order.rate(params)
-    return json.loads(order_rate)
-
-
-@retry(exceptions=Exception, delay=1)
 def get_status():
     """
     現在の状態を取得する

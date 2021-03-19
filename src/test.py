@@ -1,14 +1,11 @@
-import os
-import logging
-
-from coincheck.coincheck import CoinCheck
+from api import *
 
 # CoinCheck.DEBUG = True
 # CoinCheck.DEBUG_LEVEL = logging.DEBUG
 coinCheck = CoinCheck(os.environ['ACCESS_KEY'], os.environ['API_SECRET'])
 
 # Public API
-res = coinCheck.ticker.all()
+# res = coinCheck.ticker.all()
 # res = coinCheck.trade.all()
 # res = coinCheck.order_book.all()
 
@@ -113,5 +110,8 @@ res = coinCheck.ticker.all()
 # };
 # res = coinCheck.transfer.from_leverage(params);
 
+last = json.loads(coinCheck.ticker.all())['last']
+res = get_latest_trading_rate()
 print('\nThe result:')
+print(last)
 print(res)

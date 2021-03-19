@@ -28,7 +28,7 @@ if not (environment.ALGORITHM == 'DIFFERENCE' or
     sys.exit()
 
 # レートを取得してみる
-res_json = get_rate('sell', 0.005)
+res_json = get_rate('sell', 0.005, None)
 
 # キーが有効であるか
 is_valid_key = res_json['success']
@@ -113,47 +113,41 @@ while True:
     if buying:
         # 買い注文実施
         print('Execute a buy order!')
-        try:
-            order_json = simulation_buy(get_amount()) if environment.simulation else buy(get_amount())
-            if order_json is not None:
-                environment.order_id = order_json['id']
-                environment.market_buy_amount = float(order_json['market_buy_amount'])
-                if environment.simulation:
-                    environment.simulation_jpy -= get_amount()
-                    environment.simulation_coin += float(order_json['amount'])
-        except Exception as e:
-            print(e)
+        order_json = simulation_buy(get_amount()) if environment.simulation else buy(get_amount())
+        if order_json is not None:
+            environment.order_id = order_json['id']
+            environment.market_buy_amount = float(order_json['market_buy_amount'])
+            if environment.simulation:
+                environment.simulation_jpy -= get_amount()
+                environment.simulation_coin += float(order_json['amount'])
     elif selling:
         # 売り注文実施
         print('Execute a sell order!')
-        try:
-            order_json = simulation_sell(environment.order_id) if environment.simulation else sell(environment.order_id)
-            if order_json is not None:
-                environment.order_id = None
-                order_rate_json = get_rate('sell', order_json['amount'])
-                # 今回の取引の利益
-                profit = float(order_rate_json['price']) - environment.market_buy_amount
-                # 1%以上の損失を出しているか
-                loss_flg = environment.market_buy_amount * 0.01 + profit < 0
-                environment.profit += profit
-                environment.market_buy_amount = 0
-                if environment.simulation:
-                    environment.simulation_jpy += float(order_rate_json['price'])
-                    environment.simulation_coin = 0
+        order_json = simulation_sell() if environment.simulation else sell(environment.order_id)
+        if order_json is not None:
+            environment.order_id = None
+            order_rate_json = get_rate('sell', order_json['amount'], None)
+            # 今回の取引の利益
+            profit = float(order_rate_json['price']) - environment.market_buy_amount
+            # 1%以上の損失を出しているか
+            loss_flg = environment.market_buy_amount * 0.01 + profit < 0
+            environment.profit += profit
+            environment.market_buy_amount = 0
+            if environment.simulation:
+                environment.simulation_jpy += float(order_rate_json['price'])
+                environment.simulation_coin = 0
 
-                now_down_flg = profit < 0
-                # 1%以上の損失を出している、もしくは2連続で損失が出たら暴落の可能性があるので一時停止する
-                if loss_flg or (environment.down_flg and now_down_flg):
-                    sleep()
-                    # 一時停止した後なのでリセット
-                    environment.down_flg = False
-                    # サンプルデータ作り直し（この後、先頭行を削除されるので+1）
-                    df = data_collecting(2 + 1 if environment.ALGORITHM == 'DIFFERENCE' else 25 + 1)
-                else:
-                    # 継続中なので今回の判定をセット
-                    environment.down_flg = now_down_flg
-        except Exception as e:
-            print(e)
+            now_down_flg = profit < 0
+            # 1%以上の損失を出している、もしくは2連続で損失が出たら暴落の可能性があるので一時停止する
+            if loss_flg or (environment.down_flg and now_down_flg):
+                sleep()
+                # 一時停止した後なのでリセット
+                environment.down_flg = False
+                # サンプルデータ作り直し（この後、先頭行を削除されるので+1）
+                df = data_collecting(2 + 1 if environment.ALGORITHM == 'DIFFERENCE' else 25 + 1)
+            else:
+                # 継続中なので今回の判定をセット
+                environment.down_flg = now_down_flg
 
     # 現在の時刻・金額を表示
     dt_now = datetime.datetime.now()
