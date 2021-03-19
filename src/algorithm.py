@@ -23,11 +23,13 @@ def difference(df):
 
     :rtype: {}
     """
-    print(str(df.iloc[-3]['close']) + ' -> ' + str(df.iloc[-2]['close']) + ' -> ' + str(df.iloc[-1]['close']))
+    df['diff'] = df.diff()
+
+    print(str(df.iloc[-2]['diff']) + ' -> ' + str(df.iloc[-1]['diff']))
     # 下降→上昇
-    buy_flg = df.iloc[-3]['close'] > df.iloc[-2]['close'] < df.iloc[-1]['close']
-    # 移動平均線が降下トレンドになったら
-    sell_flg = df.iloc[-3]['close'] < df.iloc[-2]['close'] > df.iloc[-1]['close']
+    buy_flg = df.iloc[-2]['diff'] < 0 < df.iloc[-1]['diff']
+    # 上昇→下降
+    sell_flg = df.iloc[-2]['diff'] > 0 > df.iloc[-1]['diff']
     return create_result(buy_flg, sell_flg)
 
 
