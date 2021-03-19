@@ -9,7 +9,7 @@ def create_result(buy_flg, sell_flg):
     """
     アルゴリズム実行後のレスポンス
 
-    :rtype: {}
+    :rtype: object
     """
     return {
         'buy_flg': buy_flg,
@@ -21,7 +21,7 @@ def difference(df):
     """
     上昇下降トレンドによる判定
 
-    :rtype: {}
+    :rtype: object
     """
     df['diff'] = df.diff()
 
@@ -37,7 +37,7 @@ def bollinger_bands(df):
     """
     ボリンジャーバンドによる判定
 
-    :rtype: {}
+    :rtype: object
     """
     # ボリンジャーバンドの期間（基本は20）
     duration = 20
@@ -66,7 +66,7 @@ def macd(df):
     """
     MACDによる判定
 
-    :rtype: {}
+    :rtype: object
     """
     # http://www.algo-fx-blog.com/macd-python-technical-indicators/
 
@@ -92,7 +92,7 @@ def hybrid(df):
     """
     ボリンジャーバンドとMACDによる判定
 
-    :rtype: {}
+    :rtype: object
     """
     # ボリンジャーバンドの期間（基本は20）
     duration = 20
@@ -134,7 +134,7 @@ def rsi(df):
     """
     RSIによる判定
 
-    :rtype: {}
+    :rtype: object
     """
     # http://www.algo-fx-blog.com/rsi-python-ml-features/
 

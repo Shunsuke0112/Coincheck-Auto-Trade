@@ -20,7 +20,7 @@ def get_latest_trading_rate():
     """
     最新の取引レートを取得する
 
-    :rtype: json
+    :rtype: float
     """
     if environment.COIN == 'btc':
         ticker = coinCheck.ticker.all()
@@ -39,7 +39,7 @@ def get_rate(order_type, coin_amount, price):
     """
     レートを取得する
 
-    :rtype: order_rate_json
+    :rtype: object
     """
     if coin_amount is not None:
         params = {
@@ -59,9 +59,9 @@ def get_rate(order_type, coin_amount, price):
 
 def get_candle_stick():
     """
-    1分間のローソク足を算出
+    1分間のローソク足を算出する
 
-    :rtype: candle
+    :rtype: object
     """
     candle = {}
     for sec in range(1, environment.INTERVAL + 1):
@@ -99,20 +99,20 @@ def data_collecting(how_many_samples=25):
     :rtype: price_list
     """
     print('Collecting data... (' + str(how_many_samples * environment.INTERVAL) + ' sec)')
-    sample_data = pd.DataFrame()
+    df = pd.DataFrame()
     for i in range(1, how_many_samples + 1):
-        candle_data = get_candle_stick()
-        sample_data = sample_data.append({'open': candle_data['open'], 'high': candle_data['high'], 'low': candle_data['low'], 'close': candle_data['close'], }, ignore_index=True)
+        candle = get_candle_stick()
+        df = df.append({'open': candle['open'], 'high': candle['high'], 'low': candle['low'], 'close': candle['close'], }, ignore_index=True)
         print(str(i) + '/' + str(how_many_samples) + ' finish.')
     print('Collection is complete!')
-    return sample_data
+    return df
 
 
 def buy(market_buy_amount):
     """
     指定した金額で買い注文を入れる（成行）
 
-    :rtype: order_create_json
+    :rtype: object
     """
     params = {
         'pair': environment.PAIR,
@@ -133,7 +133,7 @@ def simulation_buy(market_buy_amount):
     """
     シミュレーション：指定した金額で買い注文を入れる（成行）
 
-    :rtype: order_create_json
+    :rtype: object
     """
     order_rate = get_rate('buy', None, market_buy_amount)
     return {
@@ -147,7 +147,7 @@ def sell(order_id):
     """
     購入した量で売り注文を入れる（成行）
 
-    :rtype: order_create_json
+    :rtype: object
     """
     transactions = coinCheck.order.transactions()
     for transaction in json.loads(transactions)['transactions']:
@@ -174,7 +174,7 @@ def simulation_sell():
     """
     シミュレーション：購入した量で売り注文を入れる（成行）
 
-    :rtype: order_create_json
+    :rtype: object
     """
     return {
         'amount': environment.simulation_coin
@@ -185,7 +185,7 @@ def get_status():
     """
     現在の状態を取得する
 
-    :rtype: {}
+    :rtype: object
     """
     if environment.simulation:
         return {
@@ -207,15 +207,22 @@ def get_status():
 
 
 def get_amount():
+    """
+    購入金額を取得する
+
+    :rtype: float
+    """
     if environment.AMOUNT is None or environment.AMOUNT == '':
         # 未指定の場合は満額設定
-        amo = float(get_status()['jpy'])
+        return float(get_status()['jpy'])
     else:
-        amo = float(environment.AMOUNT)
-    return amo
+        return float(environment.AMOUNT)
 
 
 def sleep(hour):
+    """
+    指定した時間停止する
+    """
     for minute in range(0, environment.INTERVAL * hour):
         print(str(minute) + '/' + str(environment.INTERVAL * 12) + ' minutes passed...')
         for sec in range(1, environment.INTERVAL + 1):

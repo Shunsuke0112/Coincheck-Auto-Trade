@@ -2,6 +2,9 @@ import boto3
 
 
 def dynamo_record_create(simulation, create_at, project_name, algorithm, profit, price, buying, selling):
+    """
+    DynamoDBへログを送信
+    """
     try:
         dynamo_db = boto3.resource('dynamodb')
 
