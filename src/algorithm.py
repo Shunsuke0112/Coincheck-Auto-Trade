@@ -23,13 +23,15 @@ def difference(df):
 
     :rtype: object
     """
-    df['diff'] = df.diff()
+    df['diff'] = df['close'].diff()
 
-    print(str(df.iloc[-2]['diff']) + ' -> ' + str(df.iloc[-1]['diff']))
     # 下降→上昇
     buy_flg = df.iloc[-2]['diff'] < 0 < df.iloc[-1]['diff']
     # 上昇→下降
     sell_flg = df.iloc[-2]['diff'] > 0 > df.iloc[-1]['diff']
+
+    print(str(df.iloc[-2]['diff']) + ' -> ' + str(df.iloc[-1]['diff']))
+
     return create_result(buy_flg, sell_flg)
 
 
