@@ -12,7 +12,10 @@ market_buy_amount = 0
 # 利益
 PROFIT = os.getenv('PROFIT')
 profit = float(PROFIT if type(PROFIT) is str and PROFIT != '' else 0.0)
-df_profit = pd.DataFrame().append({'profit': profit, }, ignore_index=True)
+df_profit = pd.DataFrame() \
+    .append({'profit': profit, }, ignore_index=True) \
+    .append({'profit': profit, }, ignore_index=True) \
+    .append({'profit': profit, }, ignore_index=True)
 
 # シミュレーション用通貨
 simulation_jpy = 100000.0
