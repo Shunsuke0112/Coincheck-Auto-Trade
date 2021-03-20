@@ -223,8 +223,9 @@ def sleep(hour):
     """
     指定した時間停止する
     """
-    for minute in range(0, environment.INTERVAL * hour):
-        print(str(minute) + '/' + str(environment.INTERVAL * 12) + ' minutes passed...')
+    interval = environment.INTERVAL * hour
+    for minute in range(0, interval):
+        print(str(minute) + '/' + str(interval) + ' minutes passed...')
         for sec in range(1, environment.INTERVAL + 1):
             print(str(sec).zfill(2) + 'sec...')
             time.sleep(1)
