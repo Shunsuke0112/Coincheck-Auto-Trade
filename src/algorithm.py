@@ -143,10 +143,9 @@ def rsi(df):
     # RSIの期間（基本は14）
     duration = 14
 
-    close = df['close']
-    diff = close.diff()
+    df['diff'] = df['close'].diff()
     # 最初の欠損レコードを切り落とす
-    diff = diff[1:]
+    diff = df['diff'][1:]
 
     # 値上がり幅、値下がり幅をシリーズへ切り分け
     up, down = diff.copy(), diff.copy()
@@ -158,10 +157,10 @@ def rsi(df):
     down_sma_14 = down.abs().rolling(window=duration, center=False).mean()
 
     # RSIの計算
-    rs = up_sma_14 / down_sma_14
-    rsi = 100.0 - (100.0 / (1.0 + rs))
-    print('RSI: ' + str(rsi.iloc[-1]))
+    df['rs'] = up_sma_14 / down_sma_14
+    df['rsi'] = 100.0 - (100.0 / (1.0 + df['rs']))
+    print('RSI: ' + str(df['rsi'].iloc[-1]))
 
-    buy_flg = float(rsi.iloc[-1]) <= 30
-    sell_flg = float(rsi.iloc[-1]) >= 70
+    buy_flg = float(df['rsi'].iloc[-1]) <= 30
+    sell_flg = float(df['rsi'].iloc[-1]) >= 70
     return create_result(buy_flg, sell_flg)
