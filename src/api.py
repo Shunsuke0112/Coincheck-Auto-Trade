@@ -200,7 +200,7 @@ def get_status():
         return {
             'profit': environment.profit,  # 利益
             'jpy': account_balance_json['jpy'],  # 円
-            environment.COIN: account_balance_json[environment.COIN],  # COIN
+            environment.COIN: float(account_balance_json[environment.COIN]),  # COIN
         }
     else:
         return account_balance_json
