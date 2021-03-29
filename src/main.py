@@ -108,13 +108,11 @@ while True:
 
     coin_amount = get_status()[environment.COIN]
     now_amount = df.iloc[-1]['close'] * coin_amount
-    # ロスカット判定（購入金額の1%を下回った場合）
-    loss_cut_flg = environment.market_buy_amount * 0.01 < environment.market_buy_amount - now_amount
 
     # 買い注文実施判定
     buying = environment.order_id is None and buy_flg
     # 売り注文実施判定
-    selling = environment.order_id is not None and (sell_flg or loss_cut_flg)
+    selling = environment.order_id is not None and sell_flg
 
     if buying:
         # 買い注文実施
