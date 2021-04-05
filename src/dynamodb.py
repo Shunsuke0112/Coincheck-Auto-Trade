@@ -1,31 +1,39 @@
 import boto3
+from boto3.dynamodb.conditions import Key
 
 
-def dynamo_record_create(simulation, create_at, project_name, algorithm, profit, price, buying, selling):
+def set_result(simulation, algorithm, interval, profit):
     """
-    DynamoDBへログを送信（本番のみ）
+    DynamoDBへログを送信
     """
-    if simulation:
-        return
-
     try:
-        dynamo_db = boto3.resource('dynamodb')
+        dynamoDB = boto3.resource('dynamodb')
+        table_name = 'coincheck-auto-trade-simulation' if simulation else 'coincheck-auto-trade'
+        table = dynamoDB.Table(table_name)  # DynamoDBのテーブル名
 
-        # DynamoDBのテーブル名
-        table_name = 'coincheck-auto-trade'
-        table = dynamo_db.Table(table_name)
-
-        table.put_item(
-            Item={
-                'create_at': create_at,  # 時刻
-                'name': project_name,  # プロジェクト名
-                'algorithm': algorithm,  # アルゴリズム
-                'profit': int(profit),  # 利益
-                'price': int(price),  # 終値
-                'buying': str(buying),  # 買い注文実施
-                'selling': str(selling),  # 売り注文実施
-            }
+        # DynamoDBへのquery処理実行
+        queryData = table.query(
+            KeyConditionExpression=Key('algorithm').eq(algorithm) & Key('interval').eq(interval),  # 取得するKey情報
+            Limit=1  # 取得するデータ件数
         )
-        print('Successful writing to DynamoDB!')
+
+        if queryData['Count'] == 0:
+            # 初回登録
+            table.put_item(
+                Item={
+                    'algorithm': algorithm,  # アルゴリズム
+                    'interval': interval,  # 間隔
+                    'profit': int(profit)  # 利益
+                }
+            )
+        else:
+            # 2回目以降
+            table.update_item(
+                Key={'algorithm': algorithm, 'interval': interval},
+                UpdateExpression='set profit = :p',
+                ExpressionAttributeValues={
+                    ':p': int(queryData['Items'][0]['profit']) + int(profit),
+                }
+            )
     except Exception as e:
         print(e)

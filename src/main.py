@@ -145,6 +145,10 @@ while True:
             profit = float(order_rate_json['price']) - environment.market_buy_amount
             environment.profit += profit
             environment.df_profit = environment.df_profit.append({'profit': profit, }, ignore_index=True)
+
+            # DynamoDBに連携
+            set_result(environment.simulation, environment.ALGORITHM, environment.INTERVAL, profit)
+
             # シミュレーションの場合
             if environment.simulation:
                 environment.simulation_jpy += float(order_rate_json['price'])
@@ -172,27 +176,23 @@ while True:
                 print(loss)
                 print('down_flg: ' + str(down_flg))
                 print(environment.df_profit)
-                # 5時間停止
-                sleep(5)
-                # 一時停止した後なので初期化
-                environment.df_profit = pd.DataFrame() \
-                    .append({'profit': profit, }, ignore_index=True) \
-                    .append({'profit': profit, }, ignore_index=True) \
-                    .append({'profit': profit, }, ignore_index=True)
-                # サンプルデータ作り直し（この後、先頭行を削除されるので+1）
-                df = data_collecting(2 + 1 if environment.ALGORITHM == 'DIFFERENCE' else 25 + 1)
+
+                if not environment.simulation:
+                    # 5時間停止
+                    sleep(5)
+                    # 一時停止した後なので初期化
+                    environment.df_profit = pd.DataFrame() \
+                        .append({'profit': profit, }, ignore_index=True) \
+                        .append({'profit': profit, }, ignore_index=True) \
+                        .append({'profit': profit, }, ignore_index=True)
+                    # サンプルデータ作り直し（この後、先頭行を削除されるので+1）
+                    df = data_collecting(2 + 1 if environment.ALGORITHM == 'DIFFERENCE' else 25 + 1)
 
     # 現在の時刻・金額を表示
     dt_now = datetime.datetime.now()
     time = dt_now.strftime('%Y/%m/%d %H:%M:%S')
     status = get_status()
     print(time + ' ' + str(status))
-
-    # 売買が発生した場合
-    if buying or selling:
-        # データログ送信
-        dynamo_record_create(environment.simulation, time, environment.PROJECT_NAME,
-                             environment.ALGORITHM, environment.profit, candle_stick['close'], buying, selling)
 
     # 先頭行を削除してdfの長さを一定に保つ（長時間の運用時のメモリ対策）
     df = df.drop(df.index[0])
