@@ -83,10 +83,10 @@ def macd(df):
 
     print(str(macd.iloc[-2]['histogram']) + ' -> ' + str(macd.iloc[-1]['histogram']))
 
-    # MACDがシグナルを下から上に抜けるとき
-    buy_flg = macd.iloc[-2]['histogram'] < 0 and macd.iloc[-1]['histogram'] > 0
-    # ヒストグラムが減少したとき（ヒストグラムがプラス状態であるときのみ）
-    sell_flg = macd.iloc[-2]['histogram'] > macd.iloc[-1]['histogram'] and macd.iloc[-2]['histogram'] > 0
+    # ヒストグラムが負から正になったとき（MACDがシグナルを下から上に抜けるとき）
+    buy_flg = macd.iloc[-2]['histogram'] < 0 < macd.iloc[-1]['histogram']
+    # ヒストグラムが正の状態で減少したとき
+    sell_flg = macd.iloc[-2]['histogram'] > 0 and macd.iloc[-2]['histogram'] > macd.iloc[-1]['histogram']
     return create_result(buy_flg, sell_flg)
 
 
@@ -161,6 +161,43 @@ def rsi(df):
     df['rsi'] = 100.0 - (100.0 / (1.0 + df['rs']))
     print('RSI: ' + str(df['rsi'].iloc[-1]))
 
-    buy_flg = float(df['rsi'].iloc[-1]) <= 30
-    sell_flg = float(df['rsi'].iloc[-1]) >= 70
+    # RSIが30を下回ったとき
+    buy_flg = float(df['rsi'].iloc[-1]) < 30
+    # RSIが70を上回ったとき
+    sell_flg = float(df['rsi'].iloc[-1]) > 70
+    return create_result(buy_flg, sell_flg)
+
+
+def mix(df):
+    """
+    ボリンジャーバンド・MACD・RSIによる判定
+
+    :rtype: object
+    """
+    # ボリンジャーバンド
+    bollinger_bands_result = bollinger_bands(df)
+    # MACD
+    macd_result = macd(df)
+    # RSI
+    rsi_result = rsi(df)
+
+    buy_flg_count = 0
+    sell_flg_count = 0
+
+    if bollinger_bands_result['buy_flg']:
+        buy_flg_count += 1
+    if bollinger_bands_result['sell_flg']:
+        sell_flg_count += 1
+    if macd_result['buy_flg']:
+        buy_flg_count += 1
+    if macd_result['sell_flg']:
+        sell_flg_count += 1
+    if rsi_result['buy_flg']:
+        buy_flg_count += 1
+    if rsi_result['sell_flg']:
+        sell_flg_count += 1
+
+    buy_flg = buy_flg_count >= 2
+    sell_flg = sell_flg_count >= 2
+
     return create_result(buy_flg, sell_flg)

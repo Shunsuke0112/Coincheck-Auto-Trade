@@ -22,9 +22,9 @@
 
 **MACDによる判定**
 
-買い：MACDがシグナルを下から上に抜けるとき
+買い：ヒストグラムが負から正になったとき（MACDがシグナルを下から上に抜けるとき）
 
-売り：ヒストグラムが減少したとき
+売り：ヒストグラムが正の状態で減少したとき
 
 ### HYBRID
 
@@ -44,22 +44,20 @@
 
 ### MIX
 
-**ボリンジャーバンド・RSIによる判定**
+**ボリンジャーバンド・MACD・RSIによる判定**
 
-買い：-2σを下回ったとき or RSIが30を下回ったとき
-
-売り：+2σを上回ったとき or RSIが70を上回ったとき
+ボリンジャーバンド・MACD・RSIのいずれか2つが条件を満たしたとき
 
 ## 環境
 
 ```shell  
-% python -V
+$ python -V
 Python 3.9.1
 
-% docker -v
+$ docker -v
 Docker version 20.10.3, build 48d30b5
 
-% docker-compose -v
+$ docker-compose -v
 docker-compose version 1.28.2, build 67630359
 ```
 

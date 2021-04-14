@@ -98,10 +98,9 @@ while True:
         buy_flg = result['buy_flg']
         sell_flg = result['sell_flg']
     elif environment.ALGORITHM == 'MIX':
-        bollinger_bands_result = bollinger_bands(df)
-        rsi_result = rsi(df)
-        buy_flg = bollinger_bands_result['buy_flg'] or rsi_result['buy_flg']
-        sell_flg = bollinger_bands_result['sell_flg'] or rsi_result['sell_flg']
+        result = mix(df)
+        buy_flg = result['buy_flg']
+        sell_flg = result['sell_flg']
     else:
         print('Invalid algorithm.')
         sys.exit()
