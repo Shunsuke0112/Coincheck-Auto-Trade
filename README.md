@@ -13,6 +13,16 @@ $ docker-compose -v
 docker-compose version 1.28.2, build 67630359
 ```
 
+## アルゴリズム
+
+### BOLLINGER_BANDS
+
+**ボリンジャーバンドによる判定**
+
+買い：-2σを下回ったとき
+
+売り：+2σを上回ったとき
+
 ## 準備
 
 ### APIキーの発行
