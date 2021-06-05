@@ -65,7 +65,7 @@ docker-compose version 1.28.2, build 67630359
 
 ### APIキーの発行
 
-CoincheckでAPIキーを発行する。
+[Coincheck]( https://h.accesstrade.net/sp/cc?rk=0100nerr00l6g9 )でAPIキーを発行する。
 
 パーミッションは以下を選択。
 
@@ -112,9 +112,6 @@ AWS_SECRET_ACCESS_KEY=YYYYYYYYYYYYYYYYYYYY
 
 # DynamoDBリージョン
 AWS_DEFAULT_REGION=ap-northeast-1
-
-# コンテナ名
-COMPOSE_PROJECT_NAME=coincheck-auto-trade-container
 
 # 利益
 PROFIT=0
