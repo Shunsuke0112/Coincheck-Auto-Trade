@@ -1,4 +1,5 @@
 import boto3
+import os
 from boto3.dynamodb.conditions import Key
 
 
@@ -6,6 +7,9 @@ def set_result(simulation, algorithm, interval, profit):
     """
     DynamoDBへログを送信
     """
+    if os.getenv('AWS_ACCESS_KEY_ID') is None and os.getenv('AWS_SECRET_ACCESS_KEY') is None and os.getenv('AWS_DEFAULT_REGION') is None:
+        return
+
     try:
         dynamoDB = boto3.resource('dynamodb')
         table_name = 'coincheck-auto-trade-simulation' if simulation else 'coincheck-auto-trade'
