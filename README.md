@@ -1,53 +1,5 @@
 # Coincheck Auto Trade
 
-## アルゴリズム
-
-### DIFFERENCE
-
-**上昇下降トレンドによる判定**
-
-買い：下降トレンドから上昇トレンドに切り替わったとき
-
-売り：上昇トレンドから下降トレンドに切り替わったとき
-
-### BOLLINGER_BANDS
-
-**ボリンジャーバンドによる判定**
-
-買い：-2σを下回ったとき
-
-売り：+2σを上回ったとき
-
-### MACD
-
-**MACDによる判定**
-
-買い：ヒストグラムが負から正になったとき（MACDがシグナルを下から上に抜けるとき）
-
-売り：ヒストグラムが正の状態で減少したとき
-
-### HYBRID
-
-**ボリンジャーバンドとMACDによる判定**
-
-買い：-2σを下回ったとき
-
-売り：ヒストグラムが減少したとき
-
-### RSI
-
-**RSIによる判定**
-
-買い：RSIが30を下回ったとき
-
-売り：RSIが70を上回ったとき
-
-### MIX
-
-**ボリンジャーバンド・MACD・RSIによる判定**
-
-ボリンジャーバンド・MACD・RSIのいずれか2つが条件を満たしたとき
-
 ## 環境
 
 ```shell  
@@ -82,39 +34,13 @@ docker-compose version 1.28.2, build 67630359
 以下のように環境変数を設定して.envというファイル名で配置します。
 
 ```
-# 発行したアクセスキー
-ACCESS_KEY=XXXXXXXXXXXX
-
-# 発行したシークレットキー
-API_SECRET=YYYYYYYYYYYYYYYYYYYY
-
-# 売買を行う通貨（btc, etc, fct, mona）  
-COIN=btc  
-
-# アルゴリズム（DIFFERENCE, BOLLINGER_BANDS, MACD, HYBRID, RSI, MIX）  
-ALGORITHM=HYBRID  
-
-# 1回の取引で購入する金額（円）500円以上、ビットコインの場合は(0.005*レート)円以上 
-# 未設定の場合は満額 
-AMOUNT=45000
-
-# シミュレーションモード
-SIMULATION=true
-
-# ローソク足の期間
+ACCESS_KEY=XXXXXXXXXXXXXXXX
+API_SECRET=YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+COIN=btc
 INTERVAL=60
-
-# DynamoDBアクセスキー
-AWS_ACCESS_KEY_ID=XXXXXXXXXXXX
-
-# DynamoDBシークレットキー
-AWS_SECRET_ACCESS_KEY=YYYYYYYYYYYYYYYYYYYY
-
-# DynamoDBリージョン
-AWS_DEFAULT_REGION=ap-northeast-1
-
-# 利益
-PROFIT=0
+AMOUNT=
+ALGORITHM=DIFFERENCE
+SIMULATION=true
 ```
 
 ## 実行
