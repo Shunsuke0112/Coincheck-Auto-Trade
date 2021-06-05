@@ -1,5 +1,4 @@
 .idea
-.env
 
 src/__pycache__/*
 src/coincheck/__pycache__/*
