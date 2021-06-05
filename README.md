@@ -13,6 +13,16 @@ $ docker-compose -v
 docker-compose version 1.28.2, build 67630359
 ```
 
+## アルゴリズム
+
+### RSI
+
+**RSIによる判定**
+
+買い：RSIが30を下回ったとき
+
+売り：RSIが70を上回ったとき
+
 ## 準備
 
 ### APIキーの発行
